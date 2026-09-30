@@ -1,90 +1,84 @@
 # ContextOS — Enterprise AI Agent & Context Ingestion Platform
 
-ContextOS is an enterprise-grade platform that bridges client data ingestion with autonomous AI agent execution. Built on a headless Flask API Gateway and a Streamlit UI interface, ContextOS enables businesses to securely onboard clients, ingest datasets via zero-trust AWS protocols, manage structured context objects, and execute specialized AI model jobs under strict governance controls.
+ContextOS is a secure, end-to-end platform designed to bridge enterprise client data with autonomous AI agents. Built with a **Flask API Gateway** and a **Streamlit UI**, ContextOS allows businesses to onboard clients, securely ingest data via zero-trust AWS protocols, manage structured context objects, and execute specialized AI model workloads.
 
 ---
 
-## Key Capabilities
+## 🔄 End-to-End Workflow Flowchart
 
-* **Enterprise Client Management**: Onboard business clients, assign industry domains, select service plans, and register 12-digit AWS Account IDs for cross-account STS role assumption.
-* **Zero-Trust Data Ingestion**:
-  * **Direct Drag & Drop**: Rapid browser file uploads (CSV, JSON, TXT, PDF, XLSX) into the Context Store.
-  * **Presigned S3 Upload URLs**: Time-limited S3 upload endpoints requiring no client IAM credentials.
-  * **Temporary AWS Credentials**: Transfer datasets using client STS access key, secret key, and session tokens.
-  * **Cross-Account IAM Role Assumption**: Zero-credential sharing ingestion assuming client IAM roles via AWS STS `AssumeRole`.
-* **Structured Context Store**: Payload registry mapping JSON context objects to client IDs with category tags, ground-truth data schemas, and lifecycle management.
-* **Autonomous AI Agent Engine**:
-  * **Data Enrichment**: Automated entity resolution, quality scoring, and metadata attribute tagging.
-  * **Anomaly Detection**: Outlier detection across transactions, inventory levels, and metric anomalies.
-  * **AI Recommendations**: SKU recommendation ranking with predicted revenue lift percentages.
-  * **Executive Summaries**: High-level strategic synthesis and key insights generation.
-* **Operations Telemetry Dashboard**: Real-time visibility into registered clients, stored context objects, active workloads, and system health metrics.
+```mermaid
+flowchart LR
+    A[Step 1: Client Onboarding] -->|Register Client & AWS IAM Role| B[Step 2: Data Upload]
+    B -->|Direct Upload / Presigned URL / STS / AssumeRole| C[Step 3: Context Store]
+    C -->|Select Context Payload & Trigger Agent| D[Step 4: AI Agent Jobs]
+    D -->|Generated Insights & Raw Telemetry| E[Step 5: Operations Dashboard]
 
----
-
-## Architecture & Technology Stack
-
-```
-                     +----------------------------------+
-                     |       Streamlit Frontend         |
-                     |     http://localhost:8501        |
-                     +-----------------+----------------+
-                                       |
-                                       | HTTP REST API
-                                       v
-                     +-----------------+----------------+
-                     |        Flask API Gateway         |
-                     |     http://localhost:5001        |
-                     +-----------------+----------------+
-                                       |
-           +---------------------------+---------------------------+
-           |                           |                           |
-           v                           v                           v
-+----------------------+   +----------------------+   +----------------------+
-|  Client Directory    |   |    Context Store     |   |   AI Agent Engine    |
-|  AWS STS Management  |   | Zero-Trust Ingest    |   | Workload Processor   |
-+----------------------+   +----------------------+   +----------------------+
-```
-
-* **Frontend UI**: Python Streamlit (`streamlit_app.py`)
-* **API Gateway**: Python Flask (`application.py`)
-* **Deployment Target**: AWS Elastic Beanstalk (Python 3.11 AL2023 / Gunicorn)
-
----
-
-## Project Structure
-
-```
-context-platform/
-├── application.py             # Flask API Gateway Entry Point & WSGI App
-├── streamlit_app.py           # Streamlit UI Entry Point & Landing Page
-├── Procfile                   # Elastic Beanstalk Process Config
-├── requirements.txt           # Python Dependencies
-├── .ebextensions/             # AWS Elastic Beanstalk Config Rules
-│   └── 01_flask.config
-├── .streamlit/                # Streamlit Configuration & Theme
-│   └── config.toml
-├── api/                       # Flask API Route Modules
-│   ├── __init__.py
-│   ├── client_routes.py       # Client Registration & Status Routes
-│   ├── upload_routes.py       # Data Ingestion & AWS S3 Routes
-│   ├── context_routes.py      # Context Store Registry & Payload Routes
-│   └── agent_routes.py        # AI Agent Trigger & Telemetry Routes
-├── pages/                     # Streamlit Multi-Page Directory
-│   ├── 1_Clients.py           # Step 1: Onboarding & Client Roster
-│   ├── 2_Data_Upload.py       # Step 2: Data Ingestion Pipeline
-│   ├── 3_Context_Store.py     # Step 3: Context Payload Explorer
-│   ├── 4_AI_Agents.py         # Step 4: AI Agent Execution Panel
-│   └── 5_Dashboard.py         # Operations Telemetry Dashboard
-├── utils/                     # Helper Modules
-│   ├── __init__.py
-│   └── api.py                 # Global CSS & API Request Wrapper
-└── assets/                    # Static Assets & Screenshots
+    style A fill:#3b82f6,color:#fff,stroke-width:2px
+    style B fill:#6366f1,color:#fff,stroke-width:2px
+    style C fill:#8b5cf6,color:#fff,stroke-width:2px
+    style D fill:#ec4899,color:#fff,stroke-width:2px
+    style E fill:#10b981,color:#fff,stroke-width:2px
 ```
 
 ---
 
-## Quick Start (Local Setup)
+## 🎯 What Each Tab Does & How to Proceed
+
+### 🏢 **Tab 1: Clients (`1_Clients.py`) — Client Onboarding**
+* **What it does:** Register enterprise client profiles, set up company metadata, assign service tiers, and configure 12-digit AWS Account IDs for cross-account IAM role assumption.
+* **How to proceed:** 
+  1. Go to **Clients** tab.
+  2. Fill out the **Client Onboarding Form** (Company Name, AWS Account ID, Region, Tier).
+  3. Click **Register Client**. You can view all registered clients in the roster tab.
+
+---
+
+### 📤 **Tab 2: Data Upload (`2_Data_Upload.py`) — Zero-Trust Ingestion**
+* **What it does:** Ingest enterprise datasets into the platform using 4 flexible ingestion methods depending on client security needs.
+* **Ingestion Methods:**
+  * **Direct Drag & Drop:** Upload CSV, JSON, TXT, PDF, or XLSX files directly.
+  * **Presigned S3 URLs:** Generate temporary time-limited S3 URLs for zero-credential browser uploads.
+  * **Temporary AWS STS Keys:** Transfer files using client-provided STS access key, secret key, and session tokens.
+  * **Cross-Account AWS AssumeRole:** Zero-trust ingestion by assuming client IAM roles via AWS STS `AssumeRole`.
+* **How to proceed:**
+  1. Select a registered Client from the dropdown.
+  2. Pick an ingestion method (e.g., *Direct Drag & Drop*).
+  3. Upload your dataset — it automatically converts into a structured Context Payload in the Context Store.
+
+---
+
+### 🗄️ **Tab 3: Context Store (`3_Context_Store.py`) — Data Payload Explorer**
+* **What it does:** View, filter, query, and manage all ingested client context objects.
+* **How to proceed:**
+  1. Filter context payloads by Client ID or Category.
+  2. Click on any context item to inspect its JSON schema, payload size, creation timestamp, and raw payload data.
+  3. Easily copy a `Context ID` to use when launching AI Agent jobs.
+
+---
+
+### 🤖 **Tab 4: AI Agents (`4_AI_Agents.py`) — Autonomous AI Workloads**
+* **What it does:** Execute specialized AI agent models against stored context payloads and view real-time telemetry and generated intelligence.
+* **Available AI Agents:**
+  * 🪄 **Data Enrichment:** Automated entity resolution, quality scoring (`98.4%`), and metadata tagging.
+  * ⚠️ **Anomaly Detection:** Outlier detection across transactions, inventory levels, and metric anomalies.
+  * 🛍️ **Recommendation Engine:** SKU recommendation ranking with predicted revenue lift percentages.
+  * 📊 **Executive Summaries:** High-level strategic synthesis and key insights generation.
+* **How to proceed:**
+  1. Pick a Client ID and Context ID.
+  2. Select an AI Agent type (e.g., *Data Enrichment* or *Anomaly Detection*).
+  3. Click **Trigger AI Agent Job**.
+  4. Switch to the **Job Monitor & Telemetry** tab to inspect generated insights and raw JSON responses.
+
+---
+
+### 📊 **Tab 5: Dashboard (`5_Dashboard.py`) — Operations Telemetry**
+* **What it does:** Provides a high-level operational command center showing live platform metrics, active client statistics, total context storage usage, and active AI agent jobs.
+* **How to proceed:**
+  * Check overall system health, total registered clients, stored context payloads, and executed agent workloads at a glance.
+
+---
+
+## 🚀 Quick Start (Local Setup)
 
 ### Prerequisites
 * Python 3.10 or higher
@@ -100,71 +94,48 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Start the Flask API Gateway
-In terminal window 1:
-```bash
-python application.py
-```
-The Flask API Gateway starts at `http://localhost:5001`.
+### 2. Run Services
 
-### 3. Start the Streamlit UI
-In terminal window 2:
+You can run both Flask backend and Streamlit frontend using the unified startup script:
 ```bash
-streamlit run streamlit_app.py
+./start_services.sh
 ```
-The Streamlit UI opens automatically at `http://localhost:8501`.
+
+Or run them individually:
+* **Flask API Gateway (Port 8000):** `python application.py`
+* **Streamlit UI (Port 8501):** `streamlit run streamlit_app.py`
 
 ---
 
-## API Reference
+## 🏗️ Architecture & Technology Stack
 
-### Client Management
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/clients/` | List all registered clients |
-| `POST` | `/api/v1/clients/register` | Register a new client organization |
-| `PATCH` | `/api/v1/clients/<client_id>/status` | Update client account status |
+```
+                  +----------------------------------+
+                  |       Streamlit Frontend         |
+                  |     http://localhost:8501        |
+                  +-----------------+----------------+
+                                    |
+                                    | HTTP REST API
+                                    v
+                  +-----------------+----------------+
+                  |        Flask API Gateway         |
+                  |     http://localhost:8000        |
+                  +-----------------+----------------+
+                                    |
+        +---------------------------+---------------------------+
+        |                           |                           |
+        v                           v                           v
++----------------------+   +----------------------+   +----------------------+
+|  Client Directory    |   |    Context Store     |   |   AI Agent Engine    |
+|  AWS STS Management  |   | Zero-Trust Ingest    |   | Workload Processor   |
++----------------------+   +----------------------+   +----------------------+
+```
 
-### Data Ingestion
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/uploads/direct` | Direct file upload into Context Store |
-| `POST` | `/api/v1/uploads/presigned-url` | Generate S3 presigned upload URL |
-| `POST` | `/api/v1/uploads/via-client-keys` | Ingest via client temporary STS keys |
-| `POST` | `/api/v1/uploads/assume-role` | Ingest via Cross-Account STS AssumeRole |
-
-### Context Store
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/context/list` | Filter & query stored context payloads |
-| `POST` | `/api/v1/context/upload` | Manually inject a JSON context payload |
-| `DELETE` | `/api/v1/context/<context_id>` | Remove a context payload entry |
-
-### AI Agents
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/agents/types` | List available AI agent model services |
-| `POST` | `/api/v1/agents/trigger` | Queue an AI agent job against a context ID |
-| `GET` | `/api/v1/agents/jobs` | Retrieve job list and telemetry |
-| `GET` | `/api/v1/agents/status/<job_id>` | Poll job processing status and generated intelligence |
+* **Frontend UI:** Streamlit (`streamlit_app.py`)
+* **API Gateway:** Flask (`application.py`)
+* **Deployment Target:** AWS Elastic Beanstalk (Python 3.11 AL2023 / Nginx Reverse Proxy / Gunicorn)
 
 ---
 
-## AWS Elastic Beanstalk (EB) Deployment
-
-### 1. Build Deployment Bundle
-```bash
-zip -r context-platform-deploy.zip . -x ".venv/*" -x ".git/*" -x "__pycache__/*"
-```
-
-### 2. Deploy via EB CLI
-```bash
-eb init -p python-3.11 context-platform --region us-east-1
-eb create context-platform-env
-eb deploy
-```
-
----
-
-## License
-Distributed under the MIT License. See `LICENSE` for more information.
+## 📄 License
+Distributed under the MIT License.
