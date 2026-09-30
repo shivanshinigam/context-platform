@@ -9,7 +9,7 @@
 
 set -e
 
-LOG_DIR="/var/log"
+LOG_DIR="/tmp"
 APP_DIR="$(pwd)"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ContextOS start_services.sh — app dir: $APP_DIR"
