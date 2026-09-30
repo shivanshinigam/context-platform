@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0:8000 --workers 1 --threads 4 --timeout 120 --preload application:application
+web: ./start_services.sh
