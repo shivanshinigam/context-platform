@@ -1,12 +1,13 @@
 """
 Context Platform - Flask Application Entry Point
 EB requires a file named application.py with an 'application' WSGI callable.
+
+Streamlit is started independently by the EB post-deploy platform hook:
+  .platform/hooks/postdeploy/01_start_streamlit.sh
+It runs on port 8501; nginx proxies /streamlit/ → :8501
 """
 
 import os
-import subprocess
-import threading
-import sys
 from flask import Flask, jsonify
 from flask_cors import CORS
 
@@ -26,45 +27,6 @@ application.register_blueprint(context_bp)
 application.register_blueprint(clients_bp)
 application.register_blueprint(agents_bp)
 application.register_blueprint(uploads_bp)
-
-
-# ---------------------------------------------------------------------------
-# Start Streamlit as a background subprocess
-# Runs on port 8501; nginx proxies /streamlit/ → :8501
-# ---------------------------------------------------------------------------
-def _start_streamlit():
-    """Launch Streamlit in a background thread when gunicorn starts Flask."""
-    python_exec = sys.executable  # same venv python that runs Flask
-    streamlit_cmd = [
-        python_exec, "-m", "streamlit", "run",
-        os.path.join(os.path.dirname(__file__), "streamlit_app.py"),
-        "--server.port", "8501",
-        "--server.headless", "true",
-        "--server.address", "0.0.0.0",
-        "--server.enableCORS", "false",
-        "--server.enableXsrfProtection", "false",
-        # Tell Streamlit it is served under the /streamlit subpath on EB.
-        # Without this the browser JS tries to open WebSocket at /_stcore/stream
-        # (root) instead of /streamlit/_stcore/stream, causing the endless
-        # "connecting… retrying" loop behind the nginx reverse proxy.
-        "--server.baseUrlPath", "streamlit",
-        # Disable Segment telemetry to suppress console noise on the client side.
-        "--browser.gatherUsageStats", "false",
-    ]
-    env = os.environ.copy()
-    env["FLASK_API_URL"] = "http://localhost:8000"  # gunicorn port on EB
-    try:
-        subprocess.Popen(streamlit_cmd, env=env)
-    except Exception as e:
-        print(f"[ContextOS] Streamlit failed to start: {e}")
-
-
-# Start Streamlit once — guard against multiple gunicorn workers both starting it
-_streamlit_started = False
-if not _streamlit_started:
-    _streamlit_started = True
-    _t = threading.Thread(target=_start_streamlit, daemon=True)
-    _t.start()
 
 
 # ---------------------------------------------------------------------------
