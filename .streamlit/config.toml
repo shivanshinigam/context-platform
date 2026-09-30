@@ -5,6 +5,7 @@ gatherUsageStats = false
 headless = true
 enableCORS = false
 enableXsrfProtection = false
+enableWebsocketCompression = false
 
 [theme]
 primaryColor = "#2563eb"

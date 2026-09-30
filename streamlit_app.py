@@ -1,4 +1,3 @@
-import base64
 import streamlit as st
 from utils.api import render_sidebar_api_config
 
@@ -8,38 +7,31 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Base64 Encode Hero Image ──
-try:
-    with open("assets/hero_bg.png", "rb") as f:
-        img_base64 = base64.b64encode(f.read()).decode()
-except FileNotFoundError:
-    img_base64 = ""
-
 # ── Inject Custom Landing Page CSS ──
-st.markdown(f"""
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&display=swap');
 
 /* Reset and apply Montserrat */
-html, body, [class*="css"] {{
+html, body, [class*="css"] {
     font-family: 'Montserrat', sans-serif !important;
-}}
+}
 
 /* Remove default Streamlit top padding to allow full-bleed hero */
-.block-container {{
+.block-container {
     padding-top: 0rem !important;
     padding-bottom: 2rem !important;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
     max-width: 100% !important;
-}}
+}
 
 /* Hero Section */
-.hero-section {{
+.hero-section {
     position: relative;
     width: 100%;
     height: 55vh;
-    background: url(data:image/png;base64,{img_base64}) no-repeat center center;
+    background: url(/assets/hero_bg.png) no-repeat center center;
     background-size: cover;
     display: flex;
     flex-direction: column;
@@ -48,7 +40,7 @@ html, body, [class*="css"] {{
     text-align: center;
     color: white;
     margin-bottom: 2rem;
-}}
+}
 
 /* Dark overlay for readability */
 .hero-overlay {{

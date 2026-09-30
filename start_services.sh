@@ -26,6 +26,7 @@ python3 -m streamlit run "$APP_DIR/streamlit_app.py" \
     --server.address             0.0.0.0 \
     --server.enableCORS          false \
     --server.enableXsrfProtection false \
+    --server.enableWebsocketCompression false \
     --server.baseUrlPath         streamlit \
     --browser.gatherUsageStats   false \
     >> "$LOG_DIR/streamlit.log" 2>&1 &

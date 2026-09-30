@@ -183,8 +183,10 @@ with tab_jobs:
                     elif "enriched_fields" in res:
                         st.success(f"**Enriched {res.get('records_enriched', 0)} Records!** Data Quality: `{res.get('data_quality_score')}`")
                         st.write(f"Added metadata fields: `{', '.join(res.get('enriched_fields', []))}`")
+                    else:
+                        st.json(res)
 
-                    with st.expander("Inspect Raw AI Agent JSON Response"):
+                    if st.checkbox("Inspect Raw AI Agent JSON Response", key=f"raw_{j['job_id']}"):
                         st.json(j)
 
                 elif status == "running":
