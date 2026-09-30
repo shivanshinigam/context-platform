@@ -43,6 +43,13 @@ def _start_streamlit():
         "--server.address", "0.0.0.0",
         "--server.enableCORS", "false",
         "--server.enableXsrfProtection", "false",
+        # Tell Streamlit it is served under the /streamlit subpath on EB.
+        # Without this the browser JS tries to open WebSocket at /_stcore/stream
+        # (root) instead of /streamlit/_stcore/stream, causing the endless
+        # "connecting… retrying" loop behind the nginx reverse proxy.
+        "--server.baseUrlPath", "streamlit",
+        # Disable Segment telemetry to suppress console noise on the client side.
+        "--browser.gatherUsageStats", "false",
     ]
     env = os.environ.copy()
     env["FLASK_API_URL"] = "http://localhost:8000"  # gunicorn port on EB
