@@ -43,37 +43,37 @@ html, body, [class*="css"] {
 }
 
 /* Dark overlay for readability */
-.hero-overlay {{
+.hero-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.45);
     z-index: 1;
-}}
+}
 
-.hero-content {{
+.hero-content {
     position: relative;
     z-index: 2;
     padding: 20px;
-}}
+}
 
-.hero-title {{
+.hero-title {
     font-size: 3.2rem;
     font-weight: 300;
     letter-spacing: 0.3em;
     margin-bottom: 12px;
     text-transform: uppercase;
-}}
+}
 
-.hero-subtitle {{
+.hero-subtitle {
     font-size: 1.05rem;
     font-weight: 300;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.85);
-}}
+}
 
 /* Workflow Step Pill */
-.step-pill {{
+.step-pill {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 20px;
@@ -84,7 +84,7 @@ html, body, [class*="css"] {
     letter-spacing: 0.05em;
     margin-bottom: 8px;
     text-transform: uppercase;
-}}
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -101,9 +101,9 @@ st.markdown("""
 
 # ── Interactive Platform Workflow Guide ──
 st.subheader("Platform Architecture & End-to-End Workflow")
-st.caption("ContextOS bridges enterprise client data with specialized AI agents through a secure 4-step pipeline:")
+st.caption("ContextOS bridges enterprise client data with specialized AI agents through a secure pipeline:")
 
-w1, w2, w3, w4 = st.columns(4)
+w1, w2, w3, w4, w5 = st.columns(5)
 
 with w1:
     with st.container(border=True):
@@ -133,6 +133,14 @@ with w4:
         st.write("Run AI agents (Enrichment, Anomaly Detection, Recommendations) against context & monitor results.")
         st.page_link("pages/4_AI_Agents.py", label="Go to AI Agents →", use_container_width=True)
 
+with w5:
+    with st.container(border=True):
+        st.markdown('<span class="step-pill" style="background:#fce7f3;color:#9d174d;">AI BOT</span>', unsafe_allow_html=True)
+        st.markdown("**5. Knowledge Graph Bot**")
+        st.write("Chat with the Neo4j Aura knowledge graph. Ingest facts or ask complex relational questions instantly.")
+        st.page_link("pages/5_Knowledge_Graph_Bot.py", label="Open Graph Bot →", use_container_width=True)
+
+
 st.write("")
 st.divider()
 
@@ -147,5 +155,3 @@ with c_dash2:
 
 # Render the sidebar
 render_sidebar_api_config()
-
-

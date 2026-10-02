@@ -284,15 +284,4 @@ def render_sidebar_api_config():
             <div style="font-size: 1.2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.01em;">ContextOS</div>
         </div>
         """, unsafe_allow_html=True)
-
-        st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
-        st.caption("Backend Status")
-        default_api = os.environ.get("FLASK_API_URL", "http://localhost:5001")
-        api_url = st.text_input(
-            "Flask API Base URL",
-            value=st.session_state.get("api_url", default_api),
-            help="Backend Flask server endpoint."
-        )
-        if api_url:
-            st.session_state["api_url"] = api_url
-
+        # We now rely exclusively on environment variables for API routing rather than UI inputs.

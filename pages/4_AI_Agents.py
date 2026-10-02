@@ -21,9 +21,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Navigation Buttons ──
-n_col1, n_col2 = st.columns([4, 1])
+n_col1, n_col2, n_col3 = st.columns([3, 1, 1])
 with n_col2:
-    st.page_link("pages/5_Dashboard.py", label="Proceed to Operations Dashboard →", use_container_width=True)
+    st.page_link("pages/5_Knowledge_Graph_Bot.py", label="🧠 Knowledge Graph Bot →", use_container_width=True)
+with n_col3:
+    st.page_link("pages/5_Dashboard.py", label="Operations Dashboard →", use_container_width=True)
 
 st.write("")
 
