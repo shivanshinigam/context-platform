@@ -22,335 +22,156 @@ def graphiti_post(path, payload):
 if "kg_messages" not in st.session_state:
     st.session_state.kg_messages = []
 
-# ── CONTEXT.AI EXACT DARK THEME CSS ──────────────────────────────────────────
+# ── HIDE HEADER & FOOTER ──────────────────────────────────────────────────────
 css = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Hide Streamlit top header */
 header { visibility: hidden !important; }
 footer { display: none !important; }
 .stDeployButton { display: none !important; }
 
-/* Main app background */
-.stApp, .main .block-container {
-    background-color: #1a1a1a !important;
-    color: #ffffff !important;
+/* Apply Inter font */
+html, body, [class*="css"], [class*="st-"] {
     font-family: 'Inter', sans-serif !important;
 }
-.main .block-container {
-    padding: 0 !important;
-    max-width: 100% !important;
-}
 
-/* Sidebar styling (keep it visible but dark to match) */
-[data-testid="stSidebar"] {
-    background-color: #141414 !important;
-    border-right: 1px solid #2a2a2a !important;
-}
-[data-testid="stSidebar"] * {
-    color: #e0e0e0 !important;
-}
-
-/* ── EXACT CONTEXT.AI LAYOUT ── */
-.context-wrapper {
+/* Empty State Styling */
+.empty-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 80vh; /* leave room for input */
-    padding: 0 40px;
+    padding-top: 10vh;
 }
-
-.greeting-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 40px;
-    width: 100%;
-    max-width: 800px;
-}
-
-.greeting-icon {
-    display: flex;
-    align-items: flex-end;
-    gap: 3px;
-    height: 24px;
-}
-.greeting-icon span {
-    display: block;
-    width: 4px;
-    background-color: #d1d5db;
-    border-radius: 2px;
-}
-.greeting-icon span:nth-child(1) { height: 12px; }
-.greeting-icon span:nth-child(2) { height: 20px; }
-.greeting-icon span:nth-child(3) { height: 24px; }
-.greeting-icon span:nth-child(4) { height: 16px; }
-
-.greeting-text {
-    font-size: 1.75rem;
+.greeting {
+    font-size: 2.2rem;
     font-weight: 600;
-    color: #ffffff;
+    margin-bottom: 12px;
     letter-spacing: -0.02em;
 }
-
-.cards-container {
-    display: flex;
-    gap: 16px;
-    width: 100%;
-    max-width: 800px;
+.sub-greeting {
+    font-size: 1.05rem;
+    color: #9ca3af;
+    margin-bottom: 48px;
+    text-align: center;
+    max-width: 650px;
+    line-height: 1.5;
 }
-
-.cards-left {
+.cards-row {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    flex: 1;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 900px;
 }
-
 .card {
     background: #222222;
     border: 1px solid #333333;
     border-radius: 16px;
-    padding: 24px;
-    cursor: pointer;
+    padding: 28px 24px;
+    flex: 1;
+    min-width: 250px;
     transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
 }
 .card:hover {
     background: #2a2a2a;
     border-color: #444444;
 }
-
 .card-icon {
-    font-size: 1.2rem;
-    margin-bottom: 12px;
-}
-
-.card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.card-sub {
-    font-size: 0.85rem;
-    color: #9ca3af;
-}
-
-.card.make { flex: 1; }
-.card.build { flex: 1; }
-.card.start {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-
-.start-icon {
-    width: 48px;
-    height: 48px;
+    font-size: 1.8rem;
     margin-bottom: 16px;
-    opacity: 0.8;
 }
-
-/* ── CHAT MESSAGES ── */
-.chat-area {
-    padding: 40px 40px 140px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    align-items: center;
-    width: 100%;
-}
-.msg-row {
-    display: flex;
-    width: 100%;
-    max-width: 800px;
-    gap: 16px;
-}
-.msg-row.user { justify-content: flex-end; }
-.msg-row.assistant { justify-content: flex-start; }
-
-.bubble {
-    padding: 16px 20px;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    max-width: 80%;
-}
-.bubble.user {
-    background: #2d2d2d;
+.card-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
     color: #ffffff;
 }
-.bubble.assistant {
-    background: transparent;
-    color: #e5e7eb;
+.card-text {
+    font-size: 0.9rem;
+    color: #9ca3af;
+    line-height: 1.5;
 }
-
-.tag {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-}
-.tag-stored { background: #064e3b; color: #34d399; }
-.tag-query { background: #1e3a8a; color: #60a5fa; }
-.tag-error { background: #7f1d1d; color: #f87171; }
-
-.citation {
-    background: #222222;
-    border: 1px solid #333;
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 8px;
-    font-size: 0.85rem;
-    color: #a3a3a3;
-}
-
-/* ── INPUT AREA (To match Context.ai fat bar) ── */
-[data-testid="stChatInput"] {
-    max-width: 800px;
-    margin: 0 auto;
-    padding-bottom: 32px;
-}
-[data-testid="stChatInput"] > div {
-    background: #222222 !important;
-    border: 1px solid #333333 !important;
-    border-radius: 16px !important;
-    padding: 12px 16px !important; /* Fat input */
-}
-[data-testid="stChatInput"] > div:focus-within {
-    border-color: #555555 !important;
-}
-[data-testid="stChatInput"] textarea {
-    color: #ffffff !important;
-    font-size: 1rem !important;
-    background: transparent !important;
-}
-[data-testid="stChatInput"] textarea::placeholder {
-    color: #6b7280 !important;
-}
-[data-testid="stChatInput"] button {
-    background: #333333 !important;
-    color: #ffffff !important;
-    border-radius: 8px !important;
+.card-text b {
+    color: #d1d5db;
 }
 </style>
 """
+# Rendered without indentation to avoid markdown code block bugs
 st.markdown(css, unsafe_allow_html=True)
 
-# ── LOGIC ──
-hour = datetime.now().hour
-greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
-
+# ── EMPTY STATE ───────────────────────────────────────────────────────────────
 if not st.session_state.kg_messages:
-    # EXACT Context.ai Empty State
+    hour = datetime.now().hour
+    greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
+    
     empty_html = f"""
-<div class="context-wrapper">
-<div class="greeting-row">
-<div class="greeting-icon">
-<span></span><span></span><span></span><span></span>
-</div>
-<div class="greeting-text">{greeting}, Shivanshi</div>
+<div class="empty-wrapper">
+<div class="greeting">{greeting}, Shivanshi</div>
+<div class="sub-greeting">
+This AI Assistant connects directly to your Graphiti Knowledge Base. It continuously learns from the documents you upload and the facts you teach it.
 </div>
 
-<div class="cards-container">
-<div class="cards-left">
-<div class="card make">
-<div class="card-icon">🎨</div>
-<div class="card-title">Make &rsaquo;</div>
-<div class="card-sub">Decks, docs and video from your files</div>
+<div class="cards-row">
+<div class="card">
+<div class="card-icon">🧠</div>
+<div class="card-title">Store Knowledge</div>
+<div class="card-text">Teach the bot facts directly.<br/><br/><i>Example: "Remember that Alice is managing the AWS migration."</i></div>
 </div>
-<div class="card build">
-<div class="card-icon">🔨</div>
-<div class="card-title">Build &rsaquo;</div>
-<div class="card-sub">Tools and agents your team can use</div>
+<div class="card">
+<div class="card-icon">🔍</div>
+<div class="card-title">Query Graph</div>
+<div class="card-text">Ask complex relational questions.<br/><br/><i>Example: "What project is Alice working on?"</i></div>
 </div>
-</div>
-<div class="card start">
-<svg class="start-icon" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5">
-<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-</svg>
-<div class="card-title" style="justify-content:center">Start from a file</div>
-<div class="card-sub">Drop one here to see what it can become</div>
+<div class="card">
+<div class="card-icon">📁</div>
+<div class="card-title">Client Uploads</div>
+<div class="card-text">Use the <b>Data Upload</b> tab to ingest CSVs and documents. The bot will automatically learn from them.</div>
 </div>
 </div>
 </div>
 """
     st.markdown(empty_html, unsafe_allow_html=True)
 
-else:
-    # Chat State
-    st.markdown('<div class="chat-area">', unsafe_allow_html=True)
-    for msg in st.session_state.kg_messages:
-        role = msg["role"]
-        content = msg["content"]
-        intent = msg.get("intent")
+# ── CHAT HISTORY (NATIVE) ─────────────────────────────────────────────────────
+for msg in st.session_state.kg_messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
         
-        if role == "user":
-            html = f"""
-<div class="msg-row user">
-<div class="bubble user">{content}</div>
-</div>
-"""
-            st.markdown(html, unsafe_allow_html=True)
-        else:
-            tag_html = ""
-            if intent == "ingest": tag_html = '<div class="tag tag-stored">Stored</div>'
-            elif intent == "query": tag_html = '<div class="tag tag-query">Retrieved</div>'
-            elif intent == "error": tag_html = '<div class="tag tag-error">Error</div>'
+        if msg.get("results"):
+            for r in msg["results"][:3]:
+                fact = r.get("fact", str(r))
+                score = f"{r['score']:.2f}" if r.get("score") is not None else "High"
+                st.caption(f"✓ **{fact}** *(Confidence: {score})*")
+
+# ── NATIVE INPUT ──────────────────────────────────────────────────────────────
+if user_input := st.chat_input("What do you need today? Type @ to add a file or person."):
+    st.session_state.kg_messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
+        
+    with st.chat_message("assistant"):
+        with st.spinner("Processing..."):
+            response = graphiti_post("/api/chat", {"message": user_input})
             
-            citations_html = ""
-            if msg.get("results"):
-                for r in msg["results"][:3]:
+        if "error" in response:
+            error_msg = f"Failed to connect: {response['error']}"
+            st.error(error_msg)
+            st.session_state.kg_messages.append({"role": "assistant", "content": error_msg})
+        else:
+            reply = response.get("reply", "Done.")
+            results = response.get("results")
+            
+            st.markdown(reply)
+            if results:
+                for r in results[:3]:
                     fact = r.get("fact", str(r))
                     score = f"{r['score']:.2f}" if r.get("score") is not None else "High"
-                    citations_html += f"""
-<div class="citation">
-<strong style="color:#d1d5db; font-size:0.75rem;">Conf: {score}</strong><br/>
-{fact}
-</div>
-"""
-            
-            html = f"""
-<div class="msg-row assistant">
-<div class="bubble assistant">
-{tag_html}
-<div style="margin-top:4px">{content}</div>
-{citations_html}
-</div>
-</div>
-"""
-            st.markdown(html, unsafe_allow_html=True)
-            
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ── INPUT ──
-if user_input := st.chat_input("What do you need today? Type @ to add a file or person."):
-    st.session_state.kg_messages.append({"role": "user", "content": user_input, "intent": None})
-    
-    with st.spinner("Processing..."):
-        response = graphiti_post("/api/chat", {"message": user_input})
-        
-    if "error" in response:
-        st.session_state.kg_messages.append({"role": "assistant", "content": f"Failed: {response['error']}", "intent": "error"})
-    else:
-        st.session_state.kg_messages.append({
-            "role": "assistant",
-            "content": response.get("reply", "Done."),
-            "intent": response.get("intent", "query"),
-            "results": response.get("results")
-        })
-        
-    st.rerun()
+                    st.caption(f"✓ **{fact}** *(Confidence: {score})*")
+                    
+            st.session_state.kg_messages.append({
+                "role": "assistant",
+                "content": reply,
+                "results": results
+            })
