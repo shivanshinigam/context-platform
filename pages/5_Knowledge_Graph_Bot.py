@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import os
+from datetime import datetime
 
 st.set_page_config(
     page_title="Knowledge OS",
@@ -19,260 +20,331 @@ def graphiti_post(path, payload):
         return {"error": str(e)}
 
 if "kg_messages" not in st.session_state:
-    st.session_state.kg_messages = [
-        {"role": "assistant", "content": "Welcome to Knowledge OS. How can I assist you today?", "intent": None}
-    ]
+    st.session_state.kg_messages = []
 
-# ── PREMIUM CSS & LAYOUT ──────────────────────────────────────────────────────
+# ── CONTEXT.AI EXACT DARK THEME CSS ──────────────────────────────────────────
 css = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Reset Streamlit chrome */
+/* Hide Streamlit top header */
 header { visibility: hidden !important; }
 footer { display: none !important; }
 .stDeployButton { display: none !important; }
-.main .block-container { 
-    padding: 0 !important; 
-    max-width: 100% !important; 
-    background: #F9FAFB;
-}
-html, body, [class*="css"], [class*="st-"] {
+
+/* Main app background */
+.stApp, .main .block-container {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
     font-family: 'Inter', sans-serif !important;
 }
-
-/* Sidebar styling */
-[data-testid="stSidebar"] {
-    background: #FFFFFF !important;
-    border-right: 1px solid #E5E7EB !important;
+.main .block-container {
+    padding: 0 !important;
+    max-width: 100% !important;
 }
 
-/* Custom Header */
-.premium-header {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid #E5E7EB;
-    padding: 16px 40px;
+/* Sidebar styling (keep it visible but dark to match) */
+[data-testid="stSidebar"] {
+    background-color: #141414 !important;
+    border-right: 1px solid #2a2a2a !important;
+}
+[data-testid="stSidebar"] * {
+    color: #e0e0e0 !important;
+}
+
+/* ── EXACT CONTEXT.AI LAYOUT ── */
+.context-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80vh; /* leave room for input */
+    padding: 0 40px;
+}
+
+.greeting-row {
     display: flex;
     align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 999;
-}
-.header-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #111827;
-}
-.pulse-dot {
-    width: 8px;
-    height: 8px;
-    background: #10B981;
-    border-radius: 50%;
-    margin-left: 12px;
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-}
-.header-status {
-    font-size: 0.8rem;
-    color: #6B7280;
-    margin-left: 6px;
-    font-weight: 500;
+    gap: 16px;
+    margin-bottom: 40px;
+    width: 100%;
+    max-width: 800px;
 }
 
-/* Chat Layout */
-.chat-wrapper {
-    padding: 80px 40px 140px;
+.greeting-icon {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 24px;
+}
+.greeting-icon span {
+    display: block;
+    width: 4px;
+    background-color: #d1d5db;
+    border-radius: 2px;
+}
+.greeting-icon span:nth-child(1) { height: 12px; }
+.greeting-icon span:nth-child(2) { height: 20px; }
+.greeting-icon span:nth-child(3) { height: 24px; }
+.greeting-icon span:nth-child(4) { height: 16px; }
+
+.greeting-text {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+.cards-container {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.cards-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+}
+
+.card {
+    background: #222222;
+    border: 1px solid #333333;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+.card:hover {
+    background: #2a2a2a;
+    border-color: #444444;
+}
+
+.card-icon {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.card-sub {
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.card.make { flex: 1; }
+.card.build { flex: 1; }
+.card.start {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.start-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.8;
+}
+
+/* ── CHAT MESSAGES ── */
+.chat-area {
+    padding: 40px 40px 140px;
     display: flex;
     flex-direction: column;
     gap: 24px;
     align-items: center;
+    width: 100%;
 }
-
 .msg-row {
     display: flex;
     width: 100%;
     max-width: 800px;
     gap: 16px;
-    animation: fadeIn 0.3s ease-out;
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 .msg-row.user { justify-content: flex-end; }
 .msg-row.assistant { justify-content: flex-start; }
 
-/* Avatars */
-.avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-.avatar.ai {
-    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-    color: white;
-}
-
-/* Bubbles */
 .bubble {
-    max-width: 80%;
     padding: 16px 20px;
+    border-radius: 12px;
     font-size: 0.95rem;
     line-height: 1.6;
+    max-width: 80%;
 }
 .bubble.user {
-    background: linear-gradient(135deg, #1E293B, #0F172A);
-    color: #FFFFFF;
-    border-radius: 20px 20px 4px 20px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    background: #2d2d2d;
+    color: #ffffff;
 }
 .bubble.assistant {
-    background: #FFFFFF;
-    color: #1F2937;
-    border: 1px solid #E5E7EB;
-    border-radius: 20px 20px 20px 4px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    background: transparent;
+    color: #e5e7eb;
 }
 
-/* Tags */
-.intent-tag {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 12px;
+.tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
     font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.05em;
     text-transform: uppercase;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
-.intent-tag.stored { background: #ECFDF5; color: #059669; border: 1px solid #D1FAE5; }
-.intent-tag.query { background: #EFF6FF; color: #2563EB; border: 1px solid #DBEAFE; }
-.intent-tag.error { background: #FEF2F2; color: #DC2626; border: 1px solid #FEE2E2; }
+.tag-stored { background: #064e3b; color: #34d399; }
+.tag-query { background: #1e3a8a; color: #60a5fa; }
+.tag-error { background: #7f1d1d; color: #f87171; }
 
-/* Citations */
 .citation {
-    background: #F9FAFB;
-    border: 1px solid #F3F4F6;
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-top: 12px;
+    background: #222222;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 8px;
     font-size: 0.85rem;
-    color: #4B5563;
-}
-.citation-header {
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 4px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    color: #a3a3a3;
 }
 
-/* Input Area Override */
+/* ── INPUT AREA (To match Context.ai fat bar) ── */
 [data-testid="stChatInput"] {
     max-width: 800px;
     margin: 0 auto;
+    padding-bottom: 32px;
 }
 [data-testid="stChatInput"] > div {
-    background: #FFFFFF !important;
-    border: 1px solid #E5E7EB !important;
-    border-radius: 24px !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
-    padding: 4px 12px !important;
+    background: #222222 !important;
+    border: 1px solid #333333 !important;
+    border-radius: 16px !important;
+    padding: 12px 16px !important; /* Fat input */
 }
 [data-testid="stChatInput"] > div:focus-within {
-    border-color: #3B82F6 !important;
-    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15) !important;
+    border-color: #555555 !important;
 }
 [data-testid="stChatInput"] textarea {
+    color: #ffffff !important;
     font-size: 1rem !important;
+    background: transparent !important;
+}
+[data-testid="stChatInput"] textarea::placeholder {
+    color: #6b7280 !important;
+}
+[data-testid="stChatInput"] button {
+    background: #333333 !important;
+    color: #ffffff !important;
+    border-radius: 8px !important;
 }
 </style>
 """
-# Must be rendered without leading spaces to avoid Markdown code block formatting
 st.markdown(css, unsafe_allow_html=True)
 
-header_html = """
-<div class="premium-header">
-<div class="header-title">Knowledge OS</div>
-<div class="pulse-dot"></div>
-<div class="header-status">Live</div>
+# ── LOGIC ──
+hour = datetime.now().hour
+greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
+
+if not st.session_state.kg_messages:
+    # EXACT Context.ai Empty State
+    empty_html = f"""
+<div class="context-wrapper">
+<div class="greeting-row">
+<div class="greeting-icon">
+<span></span><span></span><span></span><span></span>
+</div>
+<div class="greeting-text">{greeting}, Shivanshi</div>
+</div>
+
+<div class="cards-container">
+<div class="cards-left">
+<div class="card make">
+<div class="card-icon">🎨</div>
+<div class="card-title">Make &rsaquo;</div>
+<div class="card-sub">Decks, docs and video from your files</div>
+</div>
+<div class="card build">
+<div class="card-icon">🔨</div>
+<div class="card-title">Build &rsaquo;</div>
+<div class="card-sub">Tools and agents your team can use</div>
+</div>
+</div>
+<div class="card start">
+<svg class="start-icon" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5">
+<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+</svg>
+<div class="card-title" style="justify-content:center">Start from a file</div>
+<div class="card-sub">Drop one here to see what it can become</div>
+</div>
+</div>
 </div>
 """
-st.markdown(header_html, unsafe_allow_html=True)
+    st.markdown(empty_html, unsafe_allow_html=True)
 
-chat_wrapper_start = """<div class="chat-wrapper">"""
-st.markdown(chat_wrapper_start, unsafe_allow_html=True)
-
-# ── RENDER CHAT ───────────────────────────────────────────────────────────────
-for msg in st.session_state.kg_messages:
-    role = msg["role"]
-    content = msg["content"]
-    intent = msg.get("intent")
-    
-    if role == "user":
-        # NO INDENTATION ALLOWED in HTML strings rendered by Streamlit Markdown!
-        html = f"""
+else:
+    # Chat State
+    st.markdown('<div class="chat-area">', unsafe_allow_html=True)
+    for msg in st.session_state.kg_messages:
+        role = msg["role"]
+        content = msg["content"]
+        intent = msg.get("intent")
+        
+        if role == "user":
+            html = f"""
 <div class="msg-row user">
 <div class="bubble user">{content}</div>
 </div>
 """
-        st.markdown(html, unsafe_allow_html=True)
-    else:
-        tag_html = ""
-        if intent == "ingest":
-            tag_html = '<div class="intent-tag stored">Knowledge Stored</div>'
-        elif intent == "query":
-            tag_html = '<div class="intent-tag query">Knowledge Retrieved</div>'
-        elif intent == "error":
-            tag_html = '<div class="intent-tag error">System Error</div>'
+            st.markdown(html, unsafe_allow_html=True)
+        else:
+            tag_html = ""
+            if intent == "ingest": tag_html = '<div class="tag tag-stored">Stored</div>'
+            elif intent == "query": tag_html = '<div class="tag tag-query">Retrieved</div>'
+            elif intent == "error": tag_html = '<div class="tag tag-error">Error</div>'
             
-        citations_html = ""
-        if msg.get("results"):
-            for r in msg["results"][:3]:
-                fact = r.get("fact", str(r))
-                score = f"{r['score']:.2f}" if r.get("score") is not None else "High"
-                citations_html += f"""
+            citations_html = ""
+            if msg.get("results"):
+                for r in msg["results"][:3]:
+                    fact = r.get("fact", str(r))
+                    score = f"{r['score']:.2f}" if r.get("score") is not None else "High"
+                    citations_html += f"""
 <div class="citation">
-<div class="citation-header">Confidence: {score}</div>
+<strong style="color:#d1d5db; font-size:0.75rem;">Conf: {score}</strong><br/>
 {fact}
 </div>
 """
-
-        html = f"""
+            
+            html = f"""
 <div class="msg-row assistant">
-<div class="avatar ai">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-</div>
 <div class="bubble assistant">
 {tag_html}
-<div class="msg-content">{content}</div>
+<div style="margin-top:4px">{content}</div>
 {citations_html}
 </div>
 </div>
 """
-        st.markdown(html, unsafe_allow_html=True)
+            st.markdown(html, unsafe_allow_html=True)
+            
+    st.markdown('</div>', unsafe_allow_html=True)
 
-chat_wrapper_end = """</div>"""
-st.markdown(chat_wrapper_end, unsafe_allow_html=True)
-
-# ── HANDLE INPUT ──────────────────────────────────────────────────────────────
-if user_input := st.chat_input("Ask a question or teach me a fact..."):
+# ── INPUT ──
+if user_input := st.chat_input("What do you need today? Type @ to add a file or person."):
     st.session_state.kg_messages.append({"role": "user", "content": user_input, "intent": None})
     
     with st.spinner("Processing..."):
         response = graphiti_post("/api/chat", {"message": user_input})
         
     if "error" in response:
-        st.session_state.kg_messages.append({"role": "assistant", "content": f"Failed to connect: {response['error']}", "intent": "error"})
+        st.session_state.kg_messages.append({"role": "assistant", "content": f"Failed: {response['error']}", "intent": "error"})
     else:
         st.session_state.kg_messages.append({
             "role": "assistant",
