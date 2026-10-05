@@ -102,6 +102,8 @@ html, body, [class*="css"], [class*="st-"] {
 st.markdown(css, unsafe_allow_html=True)
 
 # ── EMPTY STATE ───────────────────────────────────────────────────────────────
+empty_container = st.empty()
+
 if not st.session_state.kg_messages:
     hour = datetime.now().hour
     greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
@@ -124,15 +126,19 @@ This AI Assistant connects directly to your Graphiti Knowledge Base. It continuo
 <div class="card-title">Query Graph</div>
 <div class="card-text">Ask complex relational questions.<br/><br/><i>Example: "What project is Alice working on?"</i></div>
 </div>
-<div class="card">
-<div class="card-icon">📁</div>
-<div class="card-title">Client Uploads</div>
-<div class="card-text">Use the <b>Data Upload</b> tab to ingest CSVs and documents. The bot will automatically learn from them.</div>
 </div>
+<a href="Data_Upload" target="_self" style="text-decoration:none; color:inherit; display:flex; flex:1; min-width: 250px;">
+<div class="card" style="width:100%">
+<div class="card-icon">📁</div>
+<div class="card-title">Client Uploads &rsaquo;</div>
+<div class="card-text">Use the <b>Data Upload</b> tab to ingest CSVs and documents. <br/><br/><i>Click here to go there now.</i></div>
+</div>
+</a>
 </div>
 </div>
 """
-    st.markdown(empty_html, unsafe_allow_html=True)
+    with empty_container:
+        st.markdown(empty_html, unsafe_allow_html=True)
 
 # ── CHAT HISTORY (NATIVE) ─────────────────────────────────────────────────────
 for msg in st.session_state.kg_messages:
@@ -147,6 +153,8 @@ for msg in st.session_state.kg_messages:
 
 # ── NATIVE INPUT ──────────────────────────────────────────────────────────────
 if user_input := st.chat_input("What do you need today? Type @ to add a file or person."):
+    empty_container.empty() # Instantly hide the greeting cards when chatting
+    
     st.session_state.kg_messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
