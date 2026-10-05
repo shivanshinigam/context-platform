@@ -187,8 +187,8 @@ if user_input:
     if "error" in response:
         assistant_msg = {
             "role": "assistant",
-            "content": f"**API Error:** {response['error']}\n\n"
-                       f"Make sure the Graphiti Flask API is running at:\n`{get_graphiti_api_url()}`",
+            "content": f"**Error:** {response['error']}\n\n"
+                       f"Please check your backend configuration.",
             "intent": "error",
             "results": None,
         }
