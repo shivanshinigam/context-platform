@@ -83,23 +83,23 @@ st.markdown(f"<p style='text-align: center; color: #9ca3af; font-weight: 300; fo
 
 col1, col2 = st.columns(2)
 with col1:
-            with st.container(border=True):
-                st.markdown("### 🎨 Store Knowledge")
-                st.write("Teach the bot facts directly so it remembers them forever.")
-                st.caption("*Example: 'Remember that Acme Corp is a premium client.'*")
+    with st.container(border=True):
+        st.markdown("### 🎨 Store Knowledge")
+        st.write("Teach the bot facts directly so it remembers them forever.")
+        st.caption("*Example: 'Remember that Acme Corp is a premium client.'*")
+
+with col2:
+    with st.container(border=True):
+        st.markdown("### 🔍 Query Graph")
+        st.write("Ask complex relational questions about your ingested data.")
+        st.caption("*Example: 'What projects is Alice working on?'*")
         
-        with col2:
-            with st.container(border=True):
-                st.markdown("### 🔍 Query Graph")
-                st.write("Ask complex relational questions about your ingested data.")
-                st.caption("*Example: 'What projects is Alice working on?'*")
-                
-        st.write("<br>", unsafe_allow_html=True)
-        
-        with st.container(border=True):
-            st.markdown("### 📁 Start from a file")
-            st.write("Upload client CSVs and documents to automatically enrich the graph.")
-            st.page_link("pages/2_Data_Upload.py", label="Go to Data Upload →", icon="🚀")
+st.write("<br>", unsafe_allow_html=True)
+
+with st.container(border=True):
+    st.markdown("### 📁 Start from a file")
+    st.write("Upload client CSVs and documents to automatically enrich the graph.")
+    st.page_link("pages/2_Data_Upload.py", label="Go to Data Upload →", icon="🚀")
 
 st.write("<br><br>", unsafe_allow_html=True)
 
