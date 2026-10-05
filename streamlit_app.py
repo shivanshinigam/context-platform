@@ -63,29 +63,26 @@ footer { display: none !important; }
 # Render the sidebar for configuration
 render_sidebar_api_config()
 
-empty_container = st.empty()
+if "daily_quote" not in st.session_state:
+    import random
+    quotes = [
+        "The goal is to turn data into information, and information into insight.",
+        "Knowledge is the only wealth that grows when you share it.",
+        "An investment in knowledge pays the best interest.",
+        "Connecting the dots to see the bigger picture.",
+        "Every piece of data tells a story."
+    ]
+    st.session_state.daily_quote = random.choice(quotes)
 
-if not st.session_state.kg_messages:
-    with empty_container.container():
-        st.write("<br><br>", unsafe_allow_html=True)
-        import random
-        hour = datetime.now().hour
-        greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
-        
-        quotes = [
-            "The goal is to turn data into information, and information into insight.",
-            "Knowledge is the only wealth that grows when you share it.",
-            "An investment in knowledge pays the best interest.",
-            "Connecting the dots to see the bigger picture.",
-            "Every piece of data tells a story."
-        ]
-        quote = random.choice(quotes)
-        
-        st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em;'>{greeting}</h1>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center; color: #9ca3af; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'><i>\"{quote}\"</i></p>", unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
+st.write("<br><br>", unsafe_allow_html=True)
+hour = datetime.now().hour
+greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
+
+st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em;'>{greeting}</h1>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center; color: #9ca3af; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'><i>\"{st.session_state.daily_quote}\"</i></p>", unsafe_allow_html=True)
+
+col1, col2 = st.columns(2)
+with col1:
             with st.container(border=True):
                 st.markdown("### 🎨 Store Knowledge")
                 st.write("Teach the bot facts directly so it remembers them forever.")
@@ -104,6 +101,8 @@ if not st.session_state.kg_messages:
             st.write("Upload client CSVs and documents to automatically enrich the graph.")
             st.page_link("pages/2_Data_Upload.py", label="Go to Data Upload →", icon="🚀")
 
+st.write("<br><br>", unsafe_allow_html=True)
+
 for msg in st.session_state.kg_messages:
     # Use clean custom avatars instead of standard Streamlit heads
     avatar = "🧑‍💻" if msg["role"] == "user" else "✨"
@@ -117,8 +116,6 @@ for msg in st.session_state.kg_messages:
                 st.caption(f"✓ {fact} *(Confidence: {score})*")
 
 if user_input := st.chat_input("What do you need today? Type @ to add a file or person."):
-    empty_container.empty()
-    
     st.session_state.kg_messages.append({"role": "user", "content": user_input})
     with st.chat_message("user", avatar="🧑‍💻"):
         st.markdown(user_input)
