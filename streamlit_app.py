@@ -1,157 +1,121 @@
 import streamlit as st
+import requests
+import os
+from datetime import datetime
 from utils.api import render_sidebar_api_config
 
 st.set_page_config(
-    page_title="ContextOS - AI Agent Platform",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="Knowledge OS",
+    layout="centered",
+    initial_sidebar_state="expanded",
 )
 
-# ── Inject Custom Landing Page CSS ──
+def get_api_url():
+    return os.environ.get("GRAPHITI_API_URL", "http://localhost:8080")
+
+def graphiti_post(path, payload):
+    try:
+        r = requests.post(f"{get_api_url()}{path}", json=payload, timeout=30)
+        return r.json() if r.ok else {"error": f"HTTP {r.status_code}: {r.text}"}
+    except Exception as e:
+        return {"error": str(e)}
+
+if "kg_messages" not in st.session_state:
+    st.session_state.kg_messages = []
+
+# --- Premium Clean CSS ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&display=swap');
-
-/* Reset and apply Montserrat */
-html, body, [class*="css"] {
-    font-family: 'Montserrat', sans-serif !important;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+html, body, [class*="css"], [class*="st-"] {
+    font-family: 'Inter', sans-serif !important;
 }
+/* Hide top chrome */
+header { visibility: hidden !important; }
+footer { display: none !important; }
+.stDeployButton { display: none !important; }
 
-/* Remove default Streamlit top padding to allow full-bleed hero */
-.block-container {
-    padding-top: 0rem !important;
-    padding-bottom: 2rem !important;
-    padding-left: 2rem !important;
-    padding-right: 2rem !important;
-    max-width: 100% !important;
-}
-
-/* Hero Section */
-.hero-section {
-    position: relative;
-    width: 100%;
-    height: 55vh;
-    background: url(/assets/hero_bg.png) no-repeat center center;
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
-    margin-bottom: 2rem;
-}
-
-/* Dark overlay for readability */
-.hero-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 1;
-}
-
-.hero-content {
-    position: relative;
-    z-index: 2;
-    padding: 20px;
-}
-
-.hero-title {
-    font-size: 3.2rem;
-    font-weight: 300;
-    letter-spacing: 0.3em;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-}
-
-.hero-subtitle {
-    font-size: 1.05rem;
-    font-weight: 300;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.85);
-}
-
-/* Workflow Step Pill */
-.step-pill {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    background: #e0e7ff;
-    color: #3730a3;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    margin-bottom: 8px;
-    text-transform: uppercase;
+/* Refine chat input */
+[data-testid="stChatInput"] {
+    padding-bottom: 24px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Render Hero Section ──
-st.markdown("""
-<div class="hero-section">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-        <div class="hero-title">Context OS</div>
-        <div class="hero-subtitle">Enterprise Platform for Ingesting Context & Orchestrating AI Agents</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Interactive Platform Workflow Guide ──
-st.subheader("Platform Architecture & End-to-End Workflow")
-st.caption("ContextOS bridges enterprise client data with specialized AI agents through a secure pipeline:")
-
-w1, w2, w3, w4, w5 = st.columns(5)
-
-with w1:
-    with st.container(border=True):
-        st.markdown('<span class="step-pill">STEP 1</span>', unsafe_allow_html=True)
-        st.markdown("**1. Client Onboarding**")
-        st.write("Register enterprise clients, specify industry domains, and set up cross-account AWS IAM roles.")
-        st.page_link("pages/1_Clients.py", label="Go to Clients →", use_container_width=True)
-
-with w2:
-    with st.container(border=True):
-        st.markdown('<span class="step-pill">STEP 2</span>', unsafe_allow_html=True)
-        st.markdown("**2. Secure Data Upload**")
-        st.write("Ingest client data via Presigned URLs, STS keys, or zero-trust Cross-Account S3 Role Assumption.")
-        st.page_link("pages/2_Data_Upload.py", label="Go to Data Upload →", use_container_width=True)
-
-with w3:
-    with st.container(border=True):
-        st.markdown('<span class="step-pill">STEP 3</span>', unsafe_allow_html=True)
-        st.markdown("**3. Context Store**")
-        st.write("Browse, query, or manually inject structured context objects tagged by client and category.")
-        st.page_link("pages/3_Context_Store.py", label="Go to Context Store →", use_container_width=True)
-
-with w4:
-    with st.container(border=True):
-        st.markdown('<span class="step-pill">STEP 4</span>', unsafe_allow_html=True)
-        st.markdown("**4. AI Agent Jobs**")
-        st.write("Run AI agents (Enrichment, Anomaly Detection, Recommendations) against context & monitor results.")
-        st.page_link("pages/4_AI_Agents.py", label="Go to AI Agents →", use_container_width=True)
-
-with w5:
-    with st.container(border=True):
-        st.markdown('<span class="step-pill" style="background:#fce7f3;color:#9d174d;">AI BOT</span>', unsafe_allow_html=True)
-        st.markdown("**5. Knowledge Graph Bot**")
-        st.write("Chat with the Neo4j Aura knowledge graph. Ingest facts or ask complex relational questions instantly.")
-        st.page_link("pages/5_Knowledge_Graph_Bot.py", label="Open Graph Bot →", use_container_width=True)
-
-
-st.write("")
-st.divider()
-
-# ── Quick Dashboard Banner ──
-c_dash1, c_dash2 = st.columns([3, 1])
-with c_dash1:
-    st.markdown("### Platform Operations & Live Metrics")
-    st.write("Monitor live operational metrics, active agent jobs, and recent context ingestion events across all clients.")
-with c_dash2:
-    st.write("")
-    st.page_link("pages/5_Dashboard.py", label="Open Operations Dashboard →", use_container_width=True)
-
-# Render the sidebar
+# Render the sidebar for configuration
 render_sidebar_api_config()
+
+empty_container = st.empty()
+
+if not st.session_state.kg_messages:
+    with empty_container.container():
+        st.write("<br><br>", unsafe_allow_html=True)
+        hour = datetime.now().hour
+        greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
+        
+        st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em;'>{greeting}, Shivanshi</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #9ca3af; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'>Interact directly with your Graphiti Knowledge Base. Ask questions or upload documents.</p>", unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            with st.container(border=True):
+                st.markdown("### 🎨 Store Knowledge")
+                st.write("Teach the bot facts directly so it remembers them forever.")
+                st.caption("*Example: 'Remember that Acme Corp is a premium client.'*")
+        
+        with col2:
+            with st.container(border=True):
+                st.markdown("### 🔍 Query Graph")
+                st.write("Ask complex relational questions about your ingested data.")
+                st.caption("*Example: 'What projects is Alice working on?'*")
+                
+        st.write("<br>", unsafe_allow_html=True)
+        
+        with st.container(border=True):
+            st.markdown("### 📁 Start from a file")
+            st.write("Upload client CSVs and documents to automatically enrich the graph.")
+            st.page_link("pages/2_Data_Upload.py", label="Go to Data Upload →", icon="🚀")
+
+for msg in st.session_state.kg_messages:
+    # Use clean custom avatars instead of standard Streamlit heads
+    avatar = "🧑‍💻" if msg["role"] == "user" else "✨"
+    with st.chat_message(msg["role"], avatar=avatar):
+        st.markdown(msg["content"])
+        
+        if msg.get("results"):
+            for r in msg["results"][:3]:
+                fact = r.get("fact", str(r))
+                score = f"{r['score']:.2f}" if r.get("score") is not None else "High"
+                st.caption(f"✓ {fact} *(Confidence: {score})*")
+
+if user_input := st.chat_input("What do you need today? Type @ to add a file or person."):
+    empty_container.empty()
+    
+    st.session_state.kg_messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user", avatar="🧑‍💻"):
+        st.markdown(user_input)
+        
+    with st.chat_message("assistant", avatar="✨"):
+        with st.spinner("Processing..."):
+            response = graphiti_post("/api/chat", {"message": user_input})
+            
+        if "error" in response:
+            error_msg = f"Failed to connect: {response['error']}"
+            st.error(error_msg)
+            st.session_state.kg_messages.append({"role": "assistant", "content": error_msg})
+        else:
+            reply = response.get("reply", "Done.")
+            results = response.get("results")
+            
+            st.markdown(reply)
+            if results:
+                for r in results[:3]:
+                    fact = r.get("fact", str(r))
+                    score = f"{r['score']:.2f}" if r.get("score") is not None else "High"
+                    st.caption(f"✓ {fact} *(Confidence: {score})*")
+                    
+            st.session_state.kg_messages.append({
+                "role": "assistant",
+                "content": reply,
+                "results": results
+            })
