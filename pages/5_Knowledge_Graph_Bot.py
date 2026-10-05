@@ -4,141 +4,139 @@ import os
 import re
 
 st.set_page_config(
-    page_title="AI Knowledge Assistant",
+    page_title="Knowledge Assistant",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
-# ── Hide ALL Streamlit chrome — sidebar, menu, footer, header ─────────────────
+# ── ChatGPT-style Light UI ────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-/* Hide everything Streamlit */
-#MainMenu, header, footer, [data-testid="stSidebar"],
-[data-testid="collapsedControl"], .stDeployButton { display: none !important; }
+/* Hide Streamlit top header and footer, but KEEP sidebar */
+header { visibility: hidden; }
+footer { display: none !important; }
+.stDeployButton { display: none !important; }
 
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif !important;
-    background: #f5f5f5 !important;
+/* Main app background */
+.stApp {
+    background-color: #ffffff;
+    font-family: 'Inter', sans-serif;
 }
 
-/* Full viewport layout */
+/* Override default padding to maximize chat space */
 .main .block-container {
-    padding: 0 !important;
-    max-width: 100% !important;
+    padding-top: 2rem !important;
+    padding-bottom: 0 !important;
+    max-width: 850px !important;
+    margin: 0 auto;
 }
 
-/* App shell */
-.chat-shell {
+/* ── CHAT MESSAGES ── */
+.chat-container {
+    padding-bottom: 120px; /* space for input */
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    max-width: 760px;
-    margin: 0 auto;
-    background: #ffffff;
-    box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    gap: 24px;
 }
 
-/* Top bar */
-.chat-topbar {
+.msg-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    background: #ffffff;
-    border-bottom: 1px solid #ebebeb;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    width: 100%;
+    gap: 16px;
+}
+.msg-row.user {
+    justify-content: flex-end;
+}
+.msg-row.assistant {
+    justify-content: flex-start;
 }
 
-.chat-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+/* Avatars */
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    color: white;
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 14px;
     flex-shrink: 0;
 }
-
-.chat-title { font-size: 1rem; font-weight: 600; color: #111; margin: 0; }
-.chat-status { font-size: 0.75rem; color: #22c55e; margin: 0; }
-
-/* Chat message bubbles */
-.msg-row {
-    display: flex;
-    padding: 6px 20px;
-    gap: 10px;
-    align-items: flex-end;
+.avatar-bot {
+    background-color: #10a37f;
+    color: white;
 }
-.msg-row.user { flex-direction: row-reverse; }
 
-.msg-bubble {
+/* Bubbles */
+.bubble {
     max-width: 75%;
-    padding: 10px 14px;
-    border-radius: 18px;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    word-wrap: break-word;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #0d0d0d;
 }
-.msg-bubble.assistant {
-    background: #f2f2f7;
-    color: #111;
-    border-bottom-left-radius: 4px;
-}
-.msg-bubble.user {
-    background: #6366f1;
-    color: #fff;
+.bubble.user {
+    background-color: #f4f4f4;
+    padding: 10px 16px;
+    border-radius: 16px;
     border-bottom-right-radius: 4px;
 }
+.bubble.assistant {
+    padding: 4px 0;
+}
 
-.msg-tag {
+/* Tags for knowledge ops */
+.tag {
     display: inline-block;
     font-size: 0.65rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.05em;
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin-bottom: 5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
 }
 .tag-stored { background: #dcfce7; color: #166534; }
-.tag-query  { background: #dbeafe; color: #1e40af; }
+.tag-result { background: #f3f4f6; color: #374151; }
 .tag-error  { background: #fee2e2; color: #991b1b; }
 
-/* Input area */
+/* ── INPUT AREA ── */
+.input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 25%);
+    padding: 24px 0 32px;
+    display: flex;
+    justify-content: center;
+    z-index: 100;
+}
+
 [data-testid="stChatInput"] {
-    border: 1.5px solid #e0e0e0 !important;
-    border-radius: 24px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
-    background: #fff !important;
-    padding: 4px 8px !important;
-    font-size: 0.9rem !important;
+    max-width: 800px;
+    margin: 0 auto;
 }
-[data-testid="stChatInput"]:focus-within {
-    border-color: #6366f1 !important;
-    box-shadow: 0 2px 12px rgba(99,102,241,0.15) !important;
+[data-testid="stChatInput"] > div {
+    border: 1px solid #e5e5e5 !important;
+    border-radius: 16px !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05) !important;
+}
+[data-testid="stChatInput"] > div:focus-within {
+    border-color: #10a37f !important;
+}
+[data-testid="stChatInput"] textarea {
+    font-size: 1rem !important;
 }
 
-/* Padding for messages area */
-.messages-area { padding: 12px 0 8px; }
+/* Sidebar styling overrides if needed to match */
+[data-testid="stSidebar"] {
+    background-color: #f9f9f9;
+}
 </style>
-""", unsafe_allow_html=True)
-
-# ── Top bar ───────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="chat-topbar">
-    <div class="chat-avatar">K</div>
-    <div>
-        <div class="chat-title">Knowledge Assistant</div>
-        <div class="chat-status">● Active</div>
-    </div>
-</div>
 """, unsafe_allow_html=True)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -152,60 +150,68 @@ def graphiti_post(path, payload):
     except Exception as e:
         return {"error": str(e)}
 
-INGEST_RE = re.compile(
-    r"^(remember\s+that|add\s+(fact|info|data)[:\s]+|note\s+that|store|save|learn\s+that)\s*",
-    re.IGNORECASE,
-)
-
 # ── Session state ─────────────────────────────────────────────────────────────
 if "kg_messages" not in st.session_state:
     st.session_state.kg_messages = [
-        {"role": "assistant", "content": "Hi! Ask me anything or say **remember that...** to teach me a new fact.", "intent": None}
+        {"role": "assistant", "content": "Hello! I'm your Knowledge Graph Assistant. Ask me anything, or teach me a new fact by saying *'remember that...'*", "intent": None}
     ]
 
 # ── Render messages ───────────────────────────────────────────────────────────
-st.markdown('<div class="messages-area">', unsafe_allow_html=True)
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
 for msg in st.session_state.kg_messages:
     role = msg["role"]
     intent = msg.get("intent")
     content = msg["content"]
 
-    tag_html = ""
-    if intent == "ingest":
-        tag_html = '<span class="msg-tag tag-stored">STORED</span><br>'
-    elif intent == "query":
-        tag_html = '<span class="msg-tag tag-query">RESULT</span><br>'
-    elif intent == "error":
-        tag_html = '<span class="msg-tag tag-error">ERROR</span><br>'
+    if role == "user":
+        st.markdown(f"""
+        <div class="msg-row user">
+            <div class="bubble user">{content}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        tag_html = ""
+        if intent == "ingest":
+            tag_html = '<div class="tag tag-stored">Stored to Graph</div>'
+        elif intent == "query":
+            tag_html = '<div class="tag tag-result">Graph Result</div>'
+        elif intent == "error":
+            tag_html = '<div class="tag tag-error">Error</div>'
 
-    st.markdown(f"""
-    <div class="msg-row {role}">
-        <div class="msg-bubble {role}">{tag_html}{content}</div>
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="msg-row assistant">
+            <div class="avatar avatar-bot">AI</div>
+            <div class="bubble assistant">
+                {tag_html}
+                <div style="margin-top:2px">{content}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Show result cards inline if available
-    if msg.get("results"):
-        for r in msg["results"][:3]:
-            score = f"{r['score']:.2f}" if r.get("score") is not None else "–"
-            fact = r.get("fact", str(r))
-            st.markdown(f"""
-            <div class="msg-row assistant">
-                <div class="msg-bubble assistant" style="font-size:0.8rem;background:#f8f8ff;border:1px solid #e0e0ff;">
-                    {fact} &nbsp;<span style="color:#888;font-size:0.7rem">({score})</span>
+        if msg.get("results"):
+            for r in msg["results"][:3]:
+                score = f"{r['score']:.2f}" if r.get("score") is not None else "–"
+                fact = r.get("fact", str(r))
+                st.markdown(f"""
+                <div class="msg-row assistant">
+                    <div class="avatar" style="background:transparent"></div>
+                    <div class="bubble assistant" style="font-size:0.85rem; color:#666; border-left: 2px solid #e5e5e5; padding-left: 12px;">
+                        {fact} <span style="font-size:0.7rem; color:#aaa;">({score})</span>
+                    </div>
                 </div>
-            </div>""", unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Chat input ────────────────────────────────────────────────────────────────
+# ── Input ─────────────────────────────────────────────────────────────────────
+# We use Streamlit's native chat input, styled via CSS
 user_input = st.chat_input("Message Knowledge Assistant...")
 
 if user_input:
     st.session_state.kg_messages.append({"role": "user", "content": user_input, "intent": None})
 
-    with st.spinner(""):
+    with st.spinner("Thinking..."):
         response = graphiti_post("/api/chat", {"message": user_input})
 
     if "error" in response:
@@ -216,7 +222,7 @@ if user_input:
         })
     else:
         intent = response.get("intent", "query")
-        reply  = response.get("reply", "No response.")
+        reply = response.get("reply", "No response.")
         results = response.get("results") if intent == "query" else None
         st.session_state.kg_messages.append({
             "role": "assistant",
