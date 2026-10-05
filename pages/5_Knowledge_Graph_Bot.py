@@ -1,208 +1,228 @@
 import streamlit as st
 import requests
 import os
-from utils.api import render_sidebar_api_config
+import re
 
-st.set_page_config(page_title="Knowledge Graph Bot - Context Platform", layout="wide")
-render_sidebar_api_config()
+st.set_page_config(
+    page_title="AI Knowledge Assistant",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
-# ── Top Navigation ─────────────────────────────────────────────────────────────
-st.page_link("pages/4_AI_Agents.py", label="← Back to AI Agent Control Panel")
-
-# ── Custom CSS for a beautiful, clean light-mode UI ──
+# ── Hide ALL Streamlit chrome — sidebar, menu, footer, header ─────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+/* Hide everything Streamlit */
+#MainMenu, header, footer, [data-testid="stSidebar"],
+[data-testid="collapsedControl"], .stDeployButton { display: none !important; }
 
 html, body, [class*="css"] {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
+    background: #f5f5f5 !important;
 }
 
-/* Premium Light Header */
-.premium-header {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    padding: 20px 30px;
-    border-radius: 16px;
-    margin-bottom: 10px;
-    box-shadow: 0 10px 40px rgba(37, 99, 235, 0.05);
-    border: 1px solid #e2e8f0;
-    position: relative;
-    overflow: hidden;
+/* Full viewport layout */
+.main .block-container {
+    padding: 0 !important;
+    max-width: 100% !important;
 }
 
-.header-badge {
-    display: inline-block;
-    background: #eff6ff;
-    color: #2563eb;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.75rem;
+/* App shell */
+.chat-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 760px;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 0 40px rgba(0,0,0,0.08);
+}
+
+/* Top bar */
+.chat-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #ebebeb;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
     font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 15px;
-    border: 1px solid #bfdbfe;
+    flex-shrink: 0;
 }
 
-.header-title {
-    font-size: 2.6rem;
-    font-weight: 800;
-    margin-bottom: 10px;
-    letter-spacing: -0.02em;
-    color: #0f172a;
+.chat-title { font-size: 1rem; font-weight: 600; color: #111; margin: 0; }
+.chat-status { font-size: 0.75rem; color: #22c55e; margin: 0; }
+
+/* Chat message bubbles */
+.msg-row {
+    display: flex;
+    padding: 6px 20px;
+    gap: 10px;
+    align-items: flex-end;
+}
+.msg-row.user { flex-direction: row-reverse; }
+
+.msg-bubble {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+.msg-bubble.assistant {
+    background: #f2f2f7;
+    color: #111;
+    border-bottom-left-radius: 4px;
+}
+.msg-bubble.user {
+    background: #6366f1;
+    color: #fff;
+    border-bottom-right-radius: 4px;
 }
 
-.header-desc {
-    font-size: 1.1rem;
-    color: #475569;
-    line-height: 1.6;
-    max-width: 800px;
+.msg-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 5px;
 }
+.tag-stored { background: #dcfce7; color: #166534; }
+.tag-query  { background: #dbeafe; color: #1e40af; }
+.tag-error  { background: #fee2e2; color: #991b1b; }
 
-/* Chat Message Bubbles */
-[data-testid="stChatMessage"] {
-    padding: 1.2rem 1.5rem !important;
-    border-radius: 16px !important;
-    margin-bottom: 1rem !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important;
-    border: 1px solid #e2e8f0 !important;
-    background: #ffffff !important;
-}
-
-[data-testid="chatAvatarIcon-user"] {
-    background-color: #3b82f6 !important;
-}
-[data-testid="chatAvatarIcon-assistant"] {
-    background-color: #8b5cf6 !important;
-}
-
-/* Make chat input massive and floating */
+/* Input area */
 [data-testid="stChatInput"] {
-    background: #ffffff !important;
-    border: 2px solid #bfdbfe !important;
-    border-radius: 30px !important;
-    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.1) !important;
-    padding: 5px 10px !important;
-    transition: all 0.2s ease;
+    border: 1.5px solid #e0e0e0 !important;
+    border-radius: 24px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    padding: 4px 8px !important;
+    font-size: 0.9rem !important;
 }
 [data-testid="stChatInput"]:focus-within {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 10px 40px rgba(37, 99, 235, 0.2) !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 2px 12px rgba(99,102,241,0.15) !important;
 }
-</style>
 
-<div class="premium-header">
-    <div class="header-badge">AI KNOWLEDGE GRAPH</div>
-    <div class="header-title">Knowledge Graph Bot</div>
-    <div class="header-desc">
-        Interact with the intelligent knowledge base. Teach the bot new facts automatically or ask complex relational questions.
+/* Padding for messages area */
+.messages-area { padding: 12px 0 8px; }
+</style>
+""", unsafe_allow_html=True)
+
+# ── Top bar ───────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="chat-topbar">
+    <div class="chat-avatar">K</div>
+    <div>
+        <div class="chat-title">Knowledge Assistant</div>
+        <div class="chat-status">● Active</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Helper: Get Graphiti Flask API URL ──────────────────────────────────────
-def get_graphiti_api_url() -> str:
-    default = os.environ.get("GRAPHITI_API_URL", "http://localhost:8080")
-    return st.session_state.get("graphiti_api_url", default)
+# ── Helpers ───────────────────────────────────────────────────────────────────
+def get_api_url():
+    return os.environ.get("GRAPHITI_API_URL", "http://localhost:8080")
 
-def graphiti_post(path: str, payload: dict) -> dict:
+def graphiti_post(path, payload):
     try:
-        r = requests.post(
-            f"{get_graphiti_api_url()}{path}",
-            json=payload,
-            timeout=30,
-        )
+        r = requests.post(f"{get_api_url()}{path}", json=payload, timeout=30)
         return r.json() if r.ok else {"error": f"HTTP {r.status_code}: {r.text}"}
     except Exception as e:
         return {"error": str(e)}
 
-# ── Initialize chat history in session state ─────────────────────────────────
+INGEST_RE = re.compile(
+    r"^(remember\s+that|add\s+(fact|info|data)[:\s]+|note\s+that|store|save|learn\s+that)\s*",
+    re.IGNORECASE,
+)
 
-# ── Initialize chat history in session state ─────────────────────────────────
+# ── Session state ─────────────────────────────────────────────────────────────
 if "kg_messages" not in st.session_state:
     st.session_state.kg_messages = [
-        {
-            "role": "assistant",
-            "content": "**Hello! I'm your AI Knowledge Assistant.**\n\nTo store facts, say `remember that Alice is a Lead Engineer`. To query, ask `What project is Alice on?`.",
-            "intent": None,
-        }
+        {"role": "assistant", "content": "Hi! Ask me anything or say **remember that...** to teach me a new fact.", "intent": None}
     ]
 
-# ── Clear Chat Button ─────────────────────────────────────────────────────────
-col1, col2 = st.columns([8, 1])
-with col2:
-    if st.button("Clear Chat", use_container_width=True):
-        st.session_state.kg_messages = st.session_state.kg_messages[:1]
-        st.rerun()
+# ── Render messages ───────────────────────────────────────────────────────────
+st.markdown('<div class="messages-area">', unsafe_allow_html=True)
 
-# ── Render chat history ───────────────────────────────────────────────────────
-# We put the chat in a visually bounded container so it feels unified.
-chat_container = st.container()
+for msg in st.session_state.kg_messages:
+    role = msg["role"]
+    intent = msg.get("intent")
+    content = msg["content"]
 
-with chat_container:
-    for msg in st.session_state.kg_messages:
-        with st.chat_message(msg["role"]):
-            if msg.get("intent") == "ingest":
-                st.markdown(
-                    "<span style='background:#dcfce7;color:#166534;padding:3px 12px;"
-                    "border-radius:12px;font-size:0.75rem;font-weight:700;'>INGESTED</span><br><br>",
-                    unsafe_allow_html=True
-                )
-            elif msg.get("intent") == "query":
-                st.markdown(
-                    "<span style='background:#dbeafe;color:#1e40af;padding:3px 12px;"
-                    "border-radius:12px;font-size:0.75rem;font-weight:700;'>QUERY RESULT</span><br><br>",
-                    unsafe_allow_html=True
-                )
-            elif msg.get("intent") == "error":
-                st.markdown(
-                    "<span style='background:#fee2e2;color:#991b1b;padding:3px 12px;"
-                    "border-radius:12px;font-size:0.75rem;font-weight:700;'>ERROR</span><br><br>",
-                    unsafe_allow_html=True
-                )
+    tag_html = ""
+    if intent == "ingest":
+        tag_html = '<span class="msg-tag tag-stored">STORED</span><br>'
+    elif intent == "query":
+        tag_html = '<span class="msg-tag tag-query">RESULT</span><br>'
+    elif intent == "error":
+        tag_html = '<span class="msg-tag tag-error">ERROR</span><br>'
 
-            st.markdown(msg["content"])
+    st.markdown(f"""
+    <div class="msg-row {role}">
+        <div class="msg-bubble {role}">{tag_html}{content}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-            if msg.get("results"):
-                for i, r in enumerate(msg["results"], 1):
-                    score = f"{r['score']:.3f}" if r.get("score") is not None else "N/A"
-                    with st.container(border=True):
-                        st.markdown(f"**Result {i}** — Relevance: `{score}`")
-                        st.write(r.get("fact", str(r)))
+    # Show result cards inline if available
+    if msg.get("results"):
+        for r in msg["results"][:3]:
+            score = f"{r['score']:.2f}" if r.get("score") is not None else "–"
+            fact = r.get("fact", str(r))
+            st.markdown(f"""
+            <div class="msg-row assistant">
+                <div class="msg-bubble assistant" style="font-size:0.8rem;background:#f8f8ff;border:1px solid #e0e0ff;">
+                    {fact} &nbsp;<span style="color:#888;font-size:0.7rem">({score})</span>
+                </div>
+            </div>""", unsafe_allow_html=True)
 
-# ── Chat Input ────────────────────────────────────────────────────────────────
-# Using st.chat_input which sticks to the bottom natively, but styled via CSS above.
-user_input = st.chat_input("Ask a question or say 'remember that...' to store a fact...")
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ── Chat input ────────────────────────────────────────────────────────────────
+user_input = st.chat_input("Message Knowledge Assistant...")
 
 if user_input:
-    st.session_state.kg_messages.append({
-        "role": "user",
-        "content": user_input,
-        "intent": None,
-    })
+    st.session_state.kg_messages.append({"role": "user", "content": user_input, "intent": None})
 
-    with st.spinner("Thinking..."):
+    with st.spinner(""):
         response = graphiti_post("/api/chat", {"message": user_input})
 
     if "error" in response:
-        assistant_msg = {
+        st.session_state.kg_messages.append({
             "role": "assistant",
-            "content": f"**Error:** {response['error']}\n\n"
-                       f"Please check your backend configuration.",
+            "content": f"Something went wrong. Please try again.",
             "intent": "error",
-            "results": None,
-        }
+        })
     else:
         intent = response.get("intent", "query")
-        reply  = response.get("reply", "No response from the knowledge graph.")
+        reply  = response.get("reply", "No response.")
         results = response.get("results") if intent == "query" else None
-
-        assistant_msg = {
+        st.session_state.kg_messages.append({
             "role": "assistant",
             "content": reply,
             "intent": intent,
             "results": results,
-        }
+        })
 
-    st.session_state.kg_messages.append(assistant_msg)
     st.rerun()
