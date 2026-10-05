@@ -53,7 +53,7 @@ if not st.session_state.kg_messages:
         hour = datetime.now().hour
         greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
         
-        st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em;'>{greeting}, Shivanshi</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em;'>{greeting}</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #9ca3af; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'>Interact directly with your Graphiti Knowledge Base. Ask questions or upload documents.</p>", unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
