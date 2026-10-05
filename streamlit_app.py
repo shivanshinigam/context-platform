@@ -39,6 +39,24 @@ footer { display: none !important; }
 [data-testid="stChatInput"] {
     padding-bottom: 24px;
 }
+
+/* Beautiful Fade-In Animation for Cards */
+@keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(15px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: all 0.2s ease-out;
+}
+
+/* Hover effects for the native Streamlit containers */
+[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    transform: translateY(-2px);
+    border-color: #4b5563 !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -50,11 +68,21 @@ empty_container = st.empty()
 if not st.session_state.kg_messages:
     with empty_container.container():
         st.write("<br><br>", unsafe_allow_html=True)
+        import random
         hour = datetime.now().hour
         greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else "Good Evening")
         
+        quotes = [
+            "The goal is to turn data into information, and information into insight.",
+            "Knowledge is the only wealth that grows when you share it.",
+            "An investment in knowledge pays the best interest.",
+            "Connecting the dots to see the bigger picture.",
+            "Every piece of data tells a story."
+        ]
+        quote = random.choice(quotes)
+        
         st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em;'>{greeting}</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #9ca3af; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'>Interact directly with your Graphiti Knowledge Base. Ask questions or upload documents.</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: #9ca3af; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'><i>\"{quote}\"</i></p>", unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         with col1:
