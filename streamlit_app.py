@@ -143,7 +143,7 @@ for msg in st.session_state.kg_messages:
     with st.chat_message(msg["role"], avatar=get_svg_avatar(msg["role"])):
         st.markdown(msg["content"])
 
-if user_input := st.chat_input("What do you need today? Type @ to add a file or person."):
+if user_input := st.chat_input("Ask a question, or type 'Remember that...' to store a new fact."):
     st.session_state.kg_messages.append({"role": "user", "content": user_input})
     with st.chat_message("user", avatar=get_svg_avatar("user")):
         st.markdown(user_input)
