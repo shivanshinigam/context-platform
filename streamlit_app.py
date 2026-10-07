@@ -130,6 +130,49 @@ with st.container(border=True):
 
 st.write("<br><br>", unsafe_allow_html=True)
 
+# ── File Upload Section ───────────────────────────────────────────────────────
+with st.container(border=True):
+    st.markdown("### 📂 Upload & Ingest a File")
+    st.caption("Upload a CSV or PDF and it will be automatically ingested into the Knowledge Graph. You can then query it via the chat below.")
+    st.write("")
+
+    uploaded = st.file_uploader(
+        "Drag & drop a file here, or click to browse",
+        type=["csv", "pdf"],
+        label_visibility="collapsed",
+        key="kg_file_upload"
+    )
+
+    if uploaded:
+        col_info, col_btn = st.columns([3, 1])
+        with col_info:
+            st.markdown(f"**Selected:** `{uploaded.name}` — `{uploaded.size / 1024:.1f} KB`")
+        with col_btn:
+            ingest_btn = st.button("⚡ Ingest into Graph", type="primary", use_container_width=True)
+
+        if ingest_btn:
+            file_bytes = uploaded.read()
+            progress = st.progress(0, text="Uploading file to Knowledge Graph...")
+            try:
+                import requests as req
+                resp = req.post(
+                    f"{get_api_url()}/api/ingest-file",
+                    files={"file": (uploaded.name, file_bytes, uploaded.type)},
+                    timeout=120
+                )
+                progress.progress(100, text="Done!")
+                if resp.ok:
+                    data = resp.json()
+                    st.success(f"✅ {data.get('message', 'File ingested successfully!')}")
+                    st.caption(f"{data.get('ingested', 0)} episodes written to Neo4j from `{uploaded.name}`")
+                else:
+                    st.error(f"Ingestion failed: {resp.text}")
+            except Exception as e:
+                progress.empty()
+                st.error(f"Could not reach backend: {e}")
+
+st.write("<br>", unsafe_allow_html=True)
+
 def get_svg_avatar(role):
     path = f"assets/user.svg" if role == "user" else f"assets/ai.svg"
     try:
