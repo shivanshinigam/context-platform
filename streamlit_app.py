@@ -108,69 +108,52 @@ greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else 
 st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em; color: #ffffff;'>{greeting}</h1>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: #d1d5db; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'><i>\"{st.session_state.daily_quote}\"</i></p>", unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
-    with st.container(border=True):
+    with st.container(border=True, height=380):
         st.markdown("### Store Knowledge")
         st.write("Teach the bot facts directly so it remembers them forever.")
         st.caption("*Example: 'Remember that Acme Corp is a premium client.'*")
 
 with col2:
-    with st.container(border=True):
+    with st.container(border=True, height=380):
+        st.markdown("### Upload & Ingest a File")
+        st.write("Upload a CSV or PDF and it will be automatically ingested into the Knowledge Graph.")
+        st.write("")
+        uploaded = st.file_uploader(
+            "Drag & drop a file here",
+            type=["csv", "pdf"],
+            label_visibility="collapsed",
+            key="kg_file_upload"
+        )
+        if uploaded:
+            st.caption(f"**Selected:** `{uploaded.name}`")
+            if st.button("Ingest into Graph", type="primary", use_container_width=True):
+                file_bytes = uploaded.read()
+                progress = st.progress(0, text="Uploading to Graph...")
+                try:
+                    import requests as req
+                    resp = req.post(
+                        f"{get_api_url()}/api/ingest-file",
+                        files={"file": (uploaded.name, file_bytes, uploaded.type)},
+                        timeout=120
+                    )
+                    progress.progress(100, text="Done!")
+                    if resp.ok:
+                        data = resp.json()
+                        st.success(f"✅ Ingested {data.get('ingested', 0)} episodes")
+                    else:
+                        st.error(f"Failed: {resp.text}")
+                except Exception as e:
+                    progress.empty()
+                    st.error(f"Error: {e}")
+
+with col3:
+    with st.container(border=True, height=380):
         st.markdown("### Query Graph")
         st.write("Ask complex relational questions about your ingested data.")
         st.caption("*Example: 'What projects is Alice working on?'*")
         
-st.write("<br>", unsafe_allow_html=True)
-
-with st.container(border=True):
-    st.markdown("### Start from a file")
-    st.write("Upload client CSVs and documents to automatically enrich the graph.")
-    st.page_link("pages/2_Data_Upload.py", label="Go to Data Upload →")
-
-st.write("<br><br>", unsafe_allow_html=True)
-
-# ── File Upload Section ───────────────────────────────────────────────────────
-with st.container(border=True):
-    st.markdown("### 📂 Upload & Ingest a File")
-    st.caption("Upload a CSV or PDF and it will be automatically ingested into the Knowledge Graph. You can then query it via the chat below.")
-    st.write("")
-
-    uploaded = st.file_uploader(
-        "Drag & drop a file here, or click to browse",
-        type=["csv", "pdf"],
-        label_visibility="collapsed",
-        key="kg_file_upload"
-    )
-
-    if uploaded:
-        col_info, col_btn = st.columns([3, 1])
-        with col_info:
-            st.markdown(f"**Selected:** `{uploaded.name}` — `{uploaded.size / 1024:.1f} KB`")
-        with col_btn:
-            ingest_btn = st.button("⚡ Ingest into Graph", type="primary", use_container_width=True)
-
-        if ingest_btn:
-            file_bytes = uploaded.read()
-            progress = st.progress(0, text="Uploading file to Knowledge Graph...")
-            try:
-                import requests as req
-                resp = req.post(
-                    f"{get_api_url()}/api/ingest-file",
-                    files={"file": (uploaded.name, file_bytes, uploaded.type)},
-                    timeout=120
-                )
-                progress.progress(100, text="Done!")
-                if resp.ok:
-                    data = resp.json()
-                    st.success(f"✅ {data.get('message', 'File ingested successfully!')}")
-                    st.caption(f"{data.get('ingested', 0)} episodes written to Neo4j from `{uploaded.name}`")
-                else:
-                    st.error(f"Ingestion failed: {resp.text}")
-            except Exception as e:
-                progress.empty()
-                st.error(f"Could not reach backend: {e}")
-
 st.write("<br>", unsafe_allow_html=True)
 
 def get_svg_avatar(role):
