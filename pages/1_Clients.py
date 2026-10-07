@@ -14,8 +14,7 @@ st.markdown("""
         Client Directory
     </div>
     <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
-        Add new clients to the system so they can start uploading their documents. 
-        Once a client is registered, the AI can begin learning from their specific data.
+        Create a private workspace for each company. This guarantees strict data separation—so Company A's documents never mix with Company B's documents.
     </div>
 </div>
 """, unsafe_allow_html=True)

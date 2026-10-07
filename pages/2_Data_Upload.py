@@ -15,8 +15,7 @@ st.markdown("""
         Upload Files
     </div>
     <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
-        Add PDFs or CSVs so the AI can securely learn your client's data. 
-        You can upload files directly from your computer or connect to an existing database.
+        Connect a company's database directly to the AI. Instead of uploading files one by one, thousands of documents can sync automatically in the background overnight.
     </div>
 </div>
 """, unsafe_allow_html=True)

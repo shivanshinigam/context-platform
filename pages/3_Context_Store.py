@@ -15,8 +15,7 @@ st.markdown("""
         Knowledge Viewer
     </div>
     <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
-        See exactly what facts and documents the AI has successfully learned for each client. 
-        This is the trusted knowledge the AI uses to answer your questions.
+        Look inside the AI's brain. See the exact facts and documents it has successfully learned for each private company.
     </div>
 </div>
 """, unsafe_allow_html=True)
