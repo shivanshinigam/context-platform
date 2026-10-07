@@ -108,26 +108,36 @@ greeting = "Good Morning" if hour < 12 else ("Good Afternoon" if hour < 17 else 
 st.markdown(f"<h1 style='text-align: center; font-weight: 500; letter-spacing: -0.02em; color: #ffffff;'>{greeting}</h1>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: #d1d5db; font-weight: 300; font-size: 1.05rem; margin-bottom: 40px;'><i>\"{st.session_state.daily_quote}\"</i></p>", unsafe_allow_html=True)
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 with col1:
-    with st.container(border=True, height=380):
+    with st.container(border=True, height=180):
         st.markdown("### Store Knowledge")
         st.write("Teach the bot facts directly so it remembers them forever.")
         st.caption("*Example: 'Remember that Acme Corp is a premium client.'*")
 
 with col2:
-    with st.container(border=True, height=380):
-        st.markdown("### Upload & Ingest a File")
-        st.write("Upload a CSV or PDF and it will be automatically ingested into the Knowledge Graph.")
-        st.write("")
-        uploaded = st.file_uploader(
-            "Drag & drop a file here",
-            type=["csv", "pdf"],
-            label_visibility="collapsed",
-            key="kg_file_upload"
-        )
-        if uploaded:
-            st.caption(f"**Selected:** `{uploaded.name}`")
+    with st.container(border=True, height=180):
+        st.markdown("### Query Graph")
+        st.write("Ask complex relational questions about your ingested data.")
+        st.caption("*Example: 'What projects is Alice working on?'*")
+        
+st.write("<br>", unsafe_allow_html=True)
+
+with st.container(border=True):
+    st.markdown("### Upload & Ingest a File")
+    st.write("Upload a CSV or PDF and it will be automatically ingested into the Knowledge Graph.")
+    st.write("")
+    uploaded = st.file_uploader(
+        "Drag & drop a file here",
+        type=["csv", "pdf"],
+        label_visibility="collapsed",
+        key="kg_file_upload"
+    )
+    if uploaded:
+        col_info, col_btn = st.columns([3, 1])
+        with col_info:
+            st.markdown(f"**Selected:** `{uploaded.name}` — `{uploaded.size / 1024:.1f} KB`")
+        with col_btn:
             if st.button("Ingest into Graph", type="primary", use_container_width=True):
                 file_bytes = uploaded.read()
                 progress = st.progress(0, text="Uploading to Graph...")
@@ -147,12 +157,6 @@ with col2:
                 except Exception as e:
                     progress.empty()
                     st.error(f"Error: {e}")
-
-with col3:
-    with st.container(border=True, height=380):
-        st.markdown("### Query Graph")
-        st.write("Ask complex relational questions about your ingested data.")
-        st.caption("*Example: 'What projects is Alice working on?'*")
         
 st.write("<br>", unsafe_allow_html=True)
 
