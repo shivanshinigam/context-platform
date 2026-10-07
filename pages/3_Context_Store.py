@@ -9,14 +9,14 @@ render_sidebar_api_config()
 st.markdown("""
 <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 28px 36px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); border: 1px solid #334155;">
     <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; border: 1px solid rgba(96, 165, 250, 0.3);">
-        STEP 3 OF 4 | CONTEXT STORE
+        STEP 3 OF 4 | KNOWLEDGE VIEWER
     </div>
     <div style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; color: #f8fafc;">
-        Context Store & Payload Explorer
+        Knowledge Viewer
     </div>
     <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
-        Inspect, query, and manage structured context payloads stored in ContextOS.
-        Every context entry is mapped to a Client ID and serves as ground-truth data for AI Agents.
+        See exactly what facts and documents the AI has successfully learned for each client. 
+        This is the trusted knowledge the AI uses to answer your questions.
     </div>
 </div>
 """, unsafe_allow_html=True)

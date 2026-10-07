@@ -9,14 +9,14 @@ render_sidebar_api_config()
 st.markdown("""
 <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 18px 24px; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08); border: 1px solid #334155;">
     <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 3px 10px; border-radius: 16px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; border: 1px solid rgba(96, 165, 250, 0.3);">
-        STEP 2 OF 4 | CLIENT DATA INGESTION
+        STEP 2 OF 4 | DATA UPLOAD
     </div>
-    <div style="font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.01em; color: #f8fafc;">
-        Client Data Upload & S3 Pipeline
+    <div style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; color: #f8fafc;">
+        Upload Files
     </div>
-    <div style="font-size: 0.88rem; color: #94a3b8; line-height: 1.4; max-width: 900px;">
-        Ingest client dataset files into ContextOS. Select from direct browser file upload (recommended for testing),
-        presigned S3 upload URLs, temporary AWS keys, or cross-account IAM role assumption.
+    <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
+        Add PDFs or CSVs so the AI can securely learn your client's data. 
+        You can upload files directly from your computer or connect to an existing database.
     </div>
 </div>
 """, unsafe_allow_html=True)

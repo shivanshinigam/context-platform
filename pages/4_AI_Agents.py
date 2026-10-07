@@ -8,14 +8,14 @@ render_sidebar_api_config()
 st.markdown("""
 <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 28px 36px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); border: 1px solid #334155;">
     <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; border: 1px solid rgba(96, 165, 250, 0.3);">
-        STEP 4 OF 4 | AI AGENT JOBS
+        STEP 4 OF 4 | RUN AI TASKS
     </div>
     <div style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; color: #f8fafc;">
-        Autonomous AI Agent Control Panel
+        Run AI Tasks
     </div>
     <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
-        Orchestrate AI agents (Data Enrichment, Anomaly Detection, Recommendations, Summarization) against
-        ingested client context payloads. Monitor async job processing and view generated intelligence.
+        Ask the AI to automatically summarize documents or find patterns in the data you uploaded. 
+        These tasks run in the background and notify you when finished.
     </div>
 </div>
 """, unsafe_allow_html=True)

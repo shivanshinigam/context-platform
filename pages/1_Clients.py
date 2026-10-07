@@ -11,11 +11,11 @@ st.markdown("""
         STEP 1 OF 4 | CLIENT ONBOARDING
     </div>
     <div style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; color: #f8fafc;">
-        Enterprise Client Directory & Registration
+        Client Directory
     </div>
     <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
-        Onboard enterprise clients, configure AWS infrastructure parameters, and set active service tiers.
-        Clients registered here can ingest datasets and execute autonomous AI agent jobs.
+        Add new clients to the system so they can start uploading their documents. 
+        Once a client is registered, the AI can begin learning from their specific data.
     </div>
 </div>
 """, unsafe_allow_html=True)

@@ -8,14 +8,14 @@ render_sidebar_api_config()
 st.markdown("""
 <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 28px 36px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); border: 1px solid #334155;">
     <div style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; border: 1px solid rgba(96, 165, 250, 0.3);">
-        PLATFORM OPERATIONS HUB
+        SYSTEM OVERVIEW
     </div>
     <div style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; color: #f8fafc;">
-        ContextOS Telemetry & Analytics Dashboard
+        Platform Dashboard
     </div>
     <div style="font-size: 0.98rem; color: #94a3b8; line-height: 1.6; max-width: 880px;">
-        Central monitoring hub providing real-time visibility into registered enterprise clients,
-        ingested context data stores, and active AI agent computation workloads.
+        See a simple, real-time summary of all your active clients, uploaded documents, 
+        and finished AI tasks at a glance.
     </div>
 </div>
 """, unsafe_allow_html=True)
