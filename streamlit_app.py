@@ -98,15 +98,25 @@ footer { display: none !important; }
 """, unsafe_allow_html=True)
 
 def set_bg():
-    st.markdown("""
+    import base64, os
+    img_path = os.path.join(os.path.dirname(__file__), "assets", "hero_bg.png")
+    try:
+        with open(img_path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode()
+        bg_css = f"url('data:image/png;base64,{b64}')"
+    except Exception:
+        # Fallback gradient if image file not found
+        bg_css = "linear-gradient(135deg, #0a0a1a 0%, #0f172a 40%, #1a0a2e 70%, #0a0a1a 100%)"
+
+    st.markdown(f"""
     <style>
-    .stApp {
-        background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(/assets/hero_bg.png);
+    .stApp {{
+        background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.75)), {bg_css};
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
-    }
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -245,13 +255,7 @@ st.write("<br>", unsafe_allow_html=True)
 
 # ── Chat ─────────────────────────────────────────────────────────────────────
 def get_svg_avatar(role):
-    path = f"assets/user.svg" if role == "user" else f"assets/ai.svg"
-    try:
-        with open(path, "r") as f:
-            svg = f.read()
-            return f"data:image/svg+xml;base64,{base64.b64encode(svg.encode()).decode()}"
-    except:
-        return "🧑‍💻" if role == "user" else "✨"
+    return "🧑‍💻" if role == "user" else "✨"
 
 for msg in st.session_state.kg_messages:
     with st.chat_message(msg["role"], avatar=get_svg_avatar(msg["role"])):
