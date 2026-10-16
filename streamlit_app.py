@@ -23,7 +23,7 @@ def graphiti_post(path, payload):
 
 def graphiti_get(path):
     try:
-        r = requests.get(f"{get_api_url()}{path}", timeout=10)
+        r = requests.get(f"{get_api_url()}{path}", timeout=5)
         return r.json() if r.ok else {}
     except Exception:
         return {}
@@ -97,17 +97,20 @@ footer { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
-def set_bg():
+@st.cache_data(show_spinner=False)
+def _encode_bg():
     import base64, os
-    img_path = os.path.join(os.path.dirname(__file__), "assets", "hero_bg.png")
+    img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "hero_bg.png")
     try:
         with open(img_path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-        bg_css = f"url('data:image/png;base64,{b64}')"
+            return base64.b64encode(f.read()).decode()
     except Exception:
-        # Fallback gradient if image file not found
-        bg_css = "linear-gradient(135deg, #0a0a1a 0%, #0f172a 40%, #1a0a2e 70%, #0a0a1a 100%)"
+        return None
 
+def set_bg():
+    b64 = _encode_bg()
+    bg_css = f"url('data:image/png;base64,{b64}')" if b64 else \
+             "linear-gradient(135deg, #0a0a1a 0%, #0f172a 40%, #1a0a2e 70%, #0a0a1a 100%)"
     st.markdown(f"""
     <style>
     .stApp {{
