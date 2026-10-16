@@ -214,13 +214,20 @@ with st.container(border=True):
         for i, q in enumerate(st.session_state.demo_questions):
             with cols[i % 2]:
                 if st.button(q, key=f"demo_q_{i}", use_container_width=True):
-                    # Inject the question into chat
+                    # Inject the question into chat and process immediately
                     st.session_state.kg_messages.append({"role": "user", "content": q})
-                    with st.spinner("Searching the Knowledge Graph..."):
+                    with st.spinner("🔍 Searching the Knowledge Graph..."):
                         response = graphiti_post("/api/chat", {"message": q})
-                    if "error" not in response:
-                        reply = response.get("reply", "Done.")
-                        st.session_state.kg_messages.append({"role": "assistant", "content": reply})
+                    if "error" in response:
+                        st.session_state.kg_messages.append({
+                            "role": "assistant",
+                            "content": f"⚠️ {response['error']}"
+                        })
+                    else:
+                        st.session_state.kg_messages.append({
+                            "role": "assistant",
+                            "content": response.get("reply", "Done.")
+                        })
                     st.rerun()
 
 st.write("<br>", unsafe_allow_html=True)
