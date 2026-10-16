@@ -99,6 +99,7 @@ footer { display: none !important; }
 
 @st.cache_data(show_spinner=False)
 def _encode_bg():
+    """Only used locally — on production nginx serves /assets/ directly."""
     import base64, os
     img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "hero_bg.png")
     try:
@@ -108,9 +109,15 @@ def _encode_bg():
         return None
 
 def set_bg():
-    b64 = _encode_bg()
-    bg_css = f"url('data:image/png;base64,{b64}')" if b64 else \
-             "linear-gradient(135deg, #0a0a1a 0%, #0f172a 40%, #1a0a2e 70%, #0a0a1a 100%)"
+    is_production = os.environ.get("STREAMLIT_ENV") == "production"
+    if is_production:
+        # nginx serves /assets/ directly — no WebSocket overhead
+        bg_css = "url('/assets/hero_bg.png')"
+    else:
+        b64 = _encode_bg()
+        bg_css = f"url('data:image/png;base64,{b64}')" if b64 else \
+                 "linear-gradient(135deg, #0a0a1a 0%, #0f172a 40%, #1a0a2e 70%, #0a0a1a 100%)"
+
     st.markdown(f"""
     <style>
     .stApp {{
