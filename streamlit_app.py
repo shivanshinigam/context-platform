@@ -182,7 +182,7 @@ with st.container(border=True):
     if not sector_names:
         sector_names = ["Finance & Banking", "Healthcare & Pharma", "Retail & E-Commerce", "Logistics & Supply Chain"]
 
-    col_drop, col_btn = st.columns([3, 1])
+    col_drop, col_btn, col_clear = st.columns([3, 1, 1])
     with col_drop:
         selected_sector = st.selectbox(
             "Choose a sector",
@@ -193,6 +193,22 @@ with st.container(border=True):
         )
     with col_btn:
         load_clicked = st.button("Load Demo Data", type="primary", use_container_width=True, key="load_demo_btn")
+    with col_clear:
+        clear_clicked = st.button("🗑️ Clear Graph", use_container_width=True, key="clear_graph_btn",
+                                  help="Wipe all existing data from Neo4j before loading fresh demo data")
+
+    if clear_clicked:
+        with st.spinner("Clearing all data from the Knowledge Graph..."):
+            result = graphiti_post("/api/clear-graph", {})
+        if "error" in result:
+            st.error(f"Clear failed: {result['error']}")
+        else:
+            deleted = result.get("nodes_deleted", 0)
+            st.success(f"✅ Graph cleared — {deleted} nodes deleted. Ready for fresh demo data.")
+            st.session_state.demo_questions = []
+            st.session_state.demo_loaded_sector = ""
+            st.session_state.kg_messages = []
+
 
     if load_clicked and selected_sector:
         # Kick off background ingestion — returns immediately
