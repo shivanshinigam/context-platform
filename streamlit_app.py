@@ -195,16 +195,41 @@ with st.container(border=True):
         load_clicked = st.button("Load Demo Data", type="primary", use_container_width=True, key="load_demo_btn")
 
     if load_clicked and selected_sector:
-        with st.spinner(f"Loading {selected_sector} data into Knowledge Graph..."):
-            result = graphiti_post("/api/load-demo-data", {"sector": selected_sector})
+        # Kick off background ingestion — returns immediately
+        result = graphiti_post("/api/load-demo-data", {"sector": selected_sector})
         if "error" in result:
             st.error(f"Failed: {result['error']}")
         else:
-            ingested = result.get("ingested", 0)
-            total    = result.get("total_facts", 0)
-            st.success(f"Loaded {ingested} of {total} facts for **{selected_sector}** into the Knowledge Graph.")
-            st.session_state.demo_questions    = result.get("questions", [])
+            st.session_state.demo_questions = result.get("questions", [])
             st.session_state.demo_loaded_sector = selected_sector
+            total = result.get("total_facts", 0)
+
+            if result.get("status") == "already_loaded":
+                st.success(f"✅ **{selected_sector}** is already loaded — ask away!")
+            else:
+                # Poll /api/demo-status until complete
+                import time
+                progress_bar = st.progress(0, text=f"⏳ Loading facts into graph (0 / {total})...")
+                poll_url = f"{get_api_url()}/api/demo-status"
+                done = 0
+                while done < total:
+                    try:
+                        r = requests.get(poll_url, params={"sector": selected_sector}, timeout=5)
+                        if r.ok:
+                            s = r.json()
+                            done = s.get("done", 0)
+                            finished = s.get("finished", False)
+                            pct = int((done / total) * 100) if total else 0
+                            progress_bar.progress(pct, text=f"⏳ Ingesting facts: {done} / {total}")
+                            if finished:
+                                break
+                    except Exception:
+                        pass
+                    time.sleep(3)
+                progress_bar.progress(100, text=f"✅ Loaded {total} facts for **{selected_sector}**!")
+                time.sleep(1)
+                progress_bar.empty()
+                st.success(f"✅ **{selected_sector}** loaded into the Knowledge Graph. Try the questions below!")
 
     # Show suggested questions as clickable chips
     if st.session_state.demo_questions:
