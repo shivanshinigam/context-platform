@@ -34,6 +34,13 @@ if "demo_questions" not in st.session_state:
     st.session_state.demo_questions = []
 if "demo_loaded_sector" not in st.session_state:
     st.session_state.demo_loaded_sector = None
+# Polling state — avoids blocking while loop that kills WebSocket
+if "polling_active" not in st.session_state:
+    st.session_state.polling_active = False
+if "polling_sector" not in st.session_state:
+    st.session_state.polling_sector = ""
+if "polling_total" not in st.session_state:
+    st.session_state.polling_total = 0
 
 # --- Premium Clean CSS ---
 st.markdown("""
@@ -211,41 +218,46 @@ with st.container(border=True):
 
 
     if load_clicked and selected_sector:
-        # Kick off background ingestion — returns immediately
+        # Kick off background ingestion — returns immediately (no blocking!)
         result = graphiti_post("/api/load-demo-data", {"sector": selected_sector})
         if "error" in result:
             st.error(f"Failed: {result['error']}")
         else:
             st.session_state.demo_questions = result.get("questions", [])
             st.session_state.demo_loaded_sector = selected_sector
-            total = result.get("total_facts", 0)
-
             if result.get("status") == "already_loaded":
                 st.success(f"✅ **{selected_sector}** is already loaded — ask away!")
             else:
-                # Poll /api/demo-status until complete
-                import time
-                progress_bar = st.progress(0, text=f"⏳ Loading facts into graph (0 / {total})...")
-                poll_url = f"{get_api_url()}/api/demo-status"
-                done = 0
-                while done < total:
-                    try:
-                        r = requests.get(poll_url, params={"sector": selected_sector}, timeout=5)
-                        if r.ok:
-                            s = r.json()
-                            done = s.get("done", 0)
-                            finished = s.get("finished", False)
-                            pct = int((done / total) * 100) if total else 0
-                            progress_bar.progress(pct, text=f"⏳ Ingesting facts: {done} / {total}")
-                            if finished:
-                                break
-                    except Exception:
-                        pass
-                    time.sleep(3)
-                progress_bar.progress(100, text=f"✅ Loaded {total} facts for **{selected_sector}**!")
-                time.sleep(1)
-                progress_bar.empty()
-                st.success(f"✅ **{selected_sector}** loaded into the Knowledge Graph. Try the questions below!")
+                # Start polling via st.rerun() — keeps WebSocket alive
+                st.session_state.polling_active = True
+                st.session_state.polling_sector = selected_sector
+                st.session_state.polling_total = result.get("total_facts", 0)
+                st.rerun()
+
+    # ── Active polling block — runs on each rerun until finished ──────────────
+    import time
+    if st.session_state.polling_active:
+        sector  = st.session_state.polling_sector
+        total   = st.session_state.polling_total
+        try:
+            poll_url = f"{get_api_url()}/api/demo-status"
+            r = requests.get(poll_url, params={"sector": sector}, timeout=5)
+            if r.ok:
+                s        = r.json()
+                done     = s.get("done", 0)
+                finished = s.get("finished", False)
+                pct      = int((done / total) * 100) if total else 0
+
+                if finished:
+                    st.session_state.polling_active = False
+                    st.success(f"✅ **{sector}** fully loaded ({done}/{total} facts). Try the questions below!")
+                else:
+                    st.progress(pct, text=f"⏳ Ingesting facts into graph: {done} / {total} — please wait...")
+                    time.sleep(3)      # short sleep, then rerun keeps WS alive
+                    st.rerun()
+        except Exception:
+            time.sleep(3)
+            st.rerun()
 
     # Show suggested questions as clickable chips
     if st.session_state.demo_questions:
